@@ -1,0 +1,282 @@
+/* ============ 全体 ============ */
+:root {
+  --bg: #1a1410;
+  --card: #261d16;
+  --card-edge: #3a2c20;
+  --text: #f3e9dc;
+  --text-dim: #a89a88;
+  --accent: #ff9c2a;
+  --flame-1: #ffd54a;
+  --flame-2: #ff7b1c;
+  --danger: #ff4d2e;
+  --safe: #ffb84d;
+  --started: #4caf78;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 16px calc(40px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.app-header {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+}
+
+.tagline {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+/* ============ 保存エラーバナー ============ */
+.save-error {
+  background: #5c1a0e;
+  border: 1px solid var(--danger);
+  color: #ffd9cf;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 16px 0 0;
+  font-size: 0.85rem;
+}
+
+/* ============ 登録フォーム ============ */
+.add-form {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 28px;
+}
+
+.add-form input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--card-edge);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.add-form input::placeholder { color: var(--text-dim); }
+
+.btn-ignite {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--flame-1), var(--flame-2));
+  color: #3a1c00;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-ignite:active { transform: scale(0.96); }
+
+/* ============ リスト ============ */
+.list-section h2 {
+  font-size: 1rem;
+  margin: 24px 0 10px;
+  color: var(--text-dim);
+}
+
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-note {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 8px 4px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-edge);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.card-meta {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+}
+
+.remaining { font-variant-numeric: tabular-nums; }
+.remaining.urgent { color: var(--danger); font-weight: 700; }
+
+/* ============ 帳票カード(燃えている項目) ============ */
+/* 燃えている項目は紙の帳票風。蚊取り線香がその上で燃える */
+#burning-list .card {
+  background: #f6eed9;
+  border: 1px solid #cdbfa0;
+  color: #3a2c20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+#burning-list .card-title {
+  color: #2e2014;
+  border-bottom: 1px solid #cdbfa0;
+  padding-bottom: 8px;
+}
+
+#burning-list .card-meta { color: #8a7a64; }
+#burning-list .remaining.urgent { color: #d32f00; }
+
+#burning-list .start-form input {
+  background: #fffaef;
+  border-color: #cdbfa0;
+  color: #2e2014;
+}
+
+#burning-list .btn-start {
+  border-color: #b35c00;
+  color: #b35c00;
+}
+
+/* ============ 蚊取り線香(渦巻き) ============ */
+.coil {
+  display: block;
+  width: 100%;
+  margin: 10px 0 4px;
+}
+
+/* 燃え尽きた跡(灰) */
+.coil-ash {
+  fill: none;
+  stroke: #b9ab90;
+  stroke-width: 2;
+  stroke-dasharray: 3 6;
+  stroke-linecap: round;
+}
+
+/* 残っている線香(右端=外側から燃えて短くなる) */
+.coil-fuse {
+  fill: none;
+  stroke: #3d7a4e;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 燃えている先端(火種) */
+.ember-core { fill: #ff6a00; }
+
+.ember-glow {
+  fill: #ffb84d;
+  opacity: 0.5;
+  animation: ember-pulse 0.8s infinite alternate;
+}
+
+@keyframes ember-pulse {
+  from { opacity: 0.25; }
+  to   { opacity: 0.7; }
+}
+
+/* 燃え尽きアニメーション */
+.card.burn-out {
+  animation: burnout 1.6s ease-in forwards;
+}
+
+@keyframes burnout {
+  0%   { opacity: 1; filter: none; }
+  40%  { opacity: 0.8; filter: sepia(0.6) brightness(1.4); }
+  100% { opacity: 0; transform: translateY(10px) scale(0.96); filter: grayscale(1); }
+}
+
+/* ============ 着手 ============ */
+.btn-start {
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.start-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* display:flex が hidden属性に勝ってしまうのを防ぐ */
+.start-form[hidden] { display: none; }
+
+.start-form input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--card-edge);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.start-form button {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--started);
+  color: #06270f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ============ 始めたリスト ============ */
+.card.started { border-left: 3px solid var(--started); }
+
+.action-log {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-log li {
+  font-size: 0.88rem;
+  padding-left: 1.1em;
+  position: relative;
+  overflow-wrap: anywhere;
+}
+
+.action-log li::before {
+  content: "・";
+  position: absolute;
+  left: 0;
+  color: var(--started);
+}
+
+.action-log .action-time {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  margin-left: 6px;
+}

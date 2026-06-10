@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 吉日タイマー: 導火線と炎 -->
+  <rect width="512" height="512" rx="96" fill="#1a1410"/>
+  <!-- 燃え尽きた部分(灰の点線) -->
+  <line x1="330" y1="330" x2="430" y2="330" stroke="#55504a" stroke-width="10" stroke-dasharray="14 18" stroke-linecap="round"/>
+  <!-- 残っている導火線 -->
+  <path d="M82 330 L310 330" stroke="#c98a3e" stroke-width="22" stroke-linecap="round"/>
+  <path d="M82 330 L310 330" stroke="#8a5a26" stroke-width="22" stroke-linecap="round" stroke-dasharray="16 16"/>
+  <!-- 炎 -->
+  <path d="M310 318
+           C 296 280, 322 252, 318 216
+           C 352 240, 342 268, 348 276
+           C 356 264, 358 252, 354 238
+           C 386 270, 384 306, 366 326
+           C 350 344, 322 342, 310 318 Z"
+        fill="#ff7b1c"/>
+  <path d="M322 312
+           C 316 292, 330 278, 330 260
+           C 350 278, 344 296, 350 304
+           C 354 314, 346 326, 336 326
+           C 328 326, 324 320, 322 312 Z"
+        fill="#ffd54a"/>
+</svg>

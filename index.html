@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1410">
+  <title>吉日タイマー</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>吉日タイマー</h1>
+    <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+  </header>
+
+  <main>
+    <!-- 保存失敗時の通知バナー -->
+    <p id="save-error" class="save-error" hidden></p>
+
+    <!-- 登録フォーム -->
+    <form id="add-form" class="add-form" autocomplete="off">
+      <input id="add-input" type="text" maxlength="100"
+             placeholder="やろうと思ったことは?" required>
+      <button type="submit" class="btn-ignite">点火</button>
+    </form>
+
+    <!-- 燃えているリスト -->
+    <section class="list-section">
+      <h2>🔥 燃えている</h2>
+      <ul id="burning-list" class="card-list"></ul>
+      <p id="burning-empty" class="empty-note" hidden>
+        いまは何も燃えていません。思い立ったら点火しましょう。
+      </p>
+    </section>
+
+    <!-- 始めたリスト -->
+    <section class="list-section">
+      <h2>✅ 始めた</h2>
+      <ul id="started-list" class="card-list"></ul>
+      <p id="started-empty" class="empty-note" hidden>
+        着手して「やったこと」を書くと、ここに移ります。
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

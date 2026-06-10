@@ -1,0 +1,19 @@
+{
+  "name": "吉日タイマー",
+  "short_name": "吉日",
+  "description": "思い立ったが吉日。72時間で燃え尽きる導火線が着手を促すタイマー。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
