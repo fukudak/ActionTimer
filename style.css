@@ -280,3 +280,58 @@ body {
   font-size: 0.72rem;
   margin-left: 6px;
 }
+
+/* ============ バックアップ ============ */
+.data-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--card-edge);
+  padding-top: 20px;
+}
+
+.data-section h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+  color: var(--text-dim);
+}
+
+.data-note {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.data-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-data {
+  padding: 9px 16px;
+  border: 1px solid var(--card-edge);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-data:hover { color: var(--text); border-color: var(--text-dim); }
+.btn-data:active { transform: scale(0.96); }
+
+.data-status {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--card-edge);
+}
+
+.data-status.error {
+  background: #5c1a0e;
+  border-color: var(--danger);
+  color: #ffd9cf;
+}

@@ -170,6 +170,7 @@ export class FakeElement {
 // index.htmlに存在するID要素を持つdocumentスタブを作る
 function createDocument() {
   const ids = {};
+  const inputIds = new Set(["add-input", "import-input"]);
   for (const id of [
     "burning-list",
     "started-list",
@@ -178,13 +179,23 @@ function createDocument() {
     "save-error",
     "add-form",
     "add-input",
+    "export-btn",
+    "import-btn",
+    "import-input",
+    "data-status",
   ]) {
-    ids[id] = new FakeElement(id === "add-input" ? "input" : "div");
+    ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
   }
+
+  // FakeElement.body: exportData() が使う document.body.appendChild に対応
+  const body = new FakeElement("body");
+  body.appendChild = (el) => { el.href && el.click && el.click(); };
+
   return {
     getElementById: (id) => ids[id] ?? null,
     createElement: (tag) => new FakeElement(tag),
     createElementNS: (_ns, tag) => new FakeElement(tag),
+    body,
     _ids: ids,
   };
 }
@@ -218,6 +229,29 @@ export function loadApp(options = {}) {
     }
   }
 
+  // exportData() が使う Blob/URL/FileReader のスタブ
+  let lastExportedText = null;
+  class FakeBlob {
+    constructor(parts) {
+      this._text = parts.join("");
+    }
+  }
+  const FakeURL = {
+    createObjectURL: () => "blob:fake",
+    revokeObjectURL: () => {},
+  };
+  class FakeFileReader {
+    readAsText(file) {
+      // テストでは file._text に読み込み対象の文字列を入れておく
+      try {
+        this.result = file._text ?? "";
+        this.onload && this.onload();
+      } catch (e) {
+        this.onerror && this.onerror(e);
+      }
+    }
+  }
+
   const ctx = {
     document: doc,
     localStorage: storage,
@@ -228,7 +262,15 @@ export function loadApp(options = {}) {
     console,
     Date: FakeDate,
     setTimeout: (fn, ms) => timeouts.push({ fn, ms }),
-    setInterval: (fn, ms) => intervals.push({ fn, ms }),
+    setInterval: (fn, ms) => { const id = intervals.length + 1; intervals.push({ fn, ms, id }); return id; },
+    clearInterval: (id) => {
+      const idx = intervals.findIndex((i) => i.id === id);
+      if (idx >= 0) intervals.splice(idx, 1);
+    },
+    Blob: FakeBlob,
+    URL: FakeURL,
+    FileReader: FakeFileReader,
+    _getLastExportedText: () => lastExportedText,
   };
 
   vm.runInNewContext(readFileSync(APP_PATH, "utf8"), ctx, {
@@ -265,6 +307,19 @@ export function loadApp(options = {}) {
     },
     burningCards() {
       return doc._ids["burning-list"].children;
+    },
+    // バックアップ操作ヘルパ: 書き出しボタンをクリックする
+    clickExport() {
+      doc._ids["export-btn"].dispatch("click");
+    },
+    // バックアップ操作ヘルパ: JSON文字列のファイルを読み込む
+    simulateImport(jsonText) {
+      const fakeFile = { _text: jsonText };
+      doc._ids["import-input"].files = [fakeFile];
+      doc._ids["import-input"].dispatch("change");
+    },
+    dataStatus() {
+      return doc._ids["data-status"];
     },
     startedCards() {
       return doc._ids["started-list"].children;
