@@ -178,7 +178,7 @@ test("null_byte_and_control_chars_survive_roundtrip", () => {
 
 test("two_tabs_last_write_wins", () => {
   // 2タブ同時操作では後から保存した側が勝つ(既知の制限)ことを検証
-  // 同期機構は意図的に持たない(ADR-001)。挙動が変わったらこのテストで気づく
+  // 同期機構は意図的に持たない(docs/design.md)。挙動が変わったらこのテストで気づく
   const storage = createLocalStorage();
   const tabA = loadApp({ now: T0, storage });
   const tabB = loadApp({ now: T0, storage });
