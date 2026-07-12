@@ -31,6 +31,10 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { pending: [], started: [] };
     const data = JSON.parse(raw);
+    // null / 数値 / 配列などオブジェクト以外は初期状態へ(手編集や型不一致)
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return { pending: [], started: [] };
+    }
     return {
       pending: sanitizeItems(data.pending, false),
       started: sanitizeItems(data.started, true),
@@ -485,6 +489,11 @@ document.getElementById("add-form").addEventListener("submit", (e) => {
 
 // 初回描画。tick タイマーは renderBurning() 内で pending の有無に応じて開始される
 render();
+
+// タブ復帰・スリープ復帰時に即座に再計算する(累積誤差を持たない Date.now() 基準の描画)
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && state.pending.length > 0) tick();
+});
 
 // バックアップ: 書き出しボタン
 document.getElementById("export-btn").addEventListener("click", exportData);

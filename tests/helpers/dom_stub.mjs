@@ -195,6 +195,7 @@ function createDocument() {
     getElementById: (id) => ids[id] ?? null,
     createElement: (tag) => new FakeElement(tag),
     createElementNS: (_ns, tag) => new FakeElement(tag),
+    addEventListener() {},
     body,
     _ids: ids,
   };
