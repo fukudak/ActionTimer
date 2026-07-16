@@ -15,6 +15,43 @@ Service Worker は `file://` では動かないため、動作確認には必ず
 
 ---
 
+## Cloudflare Workers 配信(Git 連携)
+
+**状態:** Accepted
+
+### 決定
+本番は Cloudflare Workers(`kichijitsu-timer`)で配信する。
+`main` への push で Workers Builds が自動デプロイする(Dashboard の Git 連携)。
+
+### 公開 URL
+https://kichijitsu-timer.fukudz-5dc.workers.dev
+
+### Builds 設定(Dashboard: Worker → Settings → Builds)
+
+| 項目 | 値 |
+|------|-----|
+| Git repository | `fukudak/ActionTimer` |
+| Branch | `main` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+
+`dist/` は gitignore のため、Builds では `npm run build` で配信物を組み立ててから `wrangler deploy` する。
+Worker 名は `wrangler.toml` の `name`(`kichijitsu-timer`)と一致させること。
+
+### 手動デプロイ(ローカル)
+
+```bash
+npm run deploy
+```
+
+### 初回 Git 連携手順
+1. [Workers Builds 設定](https://dash.cloudflare.com/5dccf45aed075e55d070dd7effb31f34/workers/services/view/kichijitsu-timer/settings) を開く
+2. **Builds → Connect** で GitHub を認可し、`fukudak/ActionTimer` を接続する
+3. 上記の Build / Deploy コマンドを設定して保存する
+4. `main` に push すると自動デプロイされる
+
+---
+
 ## Service Worker キャッシュ更新規約
 
 **状態:** Accepted
