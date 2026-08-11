@@ -320,6 +320,8 @@ function buildCoilSvg() {
   const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("viewBox", `0 0 ${COIL_W} ${COIL_H}`);
   svg.setAttribute("class", "coil");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
   svg.innerHTML =
     `<path class="coil-ash" d="${COIL_PATH_D}"/>` +
     `<path class="coil-fuse" d="${COIL_PATH_D}"/>` +
@@ -342,7 +344,9 @@ function tick() {
 
     const remainingEl = li.querySelector(".remaining");
     remainingEl.textContent =
-      remaining > 0 ? formatRemaining(remaining) : "燃え尽きました…";
+      remaining > 0
+        ? `${formatRemaining(remaining)}${urgent ? "・期限間近" : ""}`
+        : "燃え尽きました…";
     remainingEl.classList.toggle("urgent", urgent);
 
     // 燃えた長さ分だけパスの先頭(外側)を消し、火種を燃焼点へ動かす
@@ -397,6 +401,7 @@ function buildStartControls(id) {
   input.type = "text";
   input.maxLength = ACTION_TEXT_MAXLEN;
   input.placeholder = "何をやった?(必須)";
+  input.setAttribute("aria-label", "着手して行ったこと");
   input.required = true;
   const submit = document.createElement("button");
   submit.type = "submit";
@@ -456,6 +461,7 @@ function renderStarted() {
     input.type = "text";
     input.maxLength = ACTION_TEXT_MAXLEN;
     input.placeholder = "やったことを追記";
+    input.setAttribute("aria-label", "やったことを追記");
     input.required = true;
     const submit = document.createElement("button");
     submit.type = "submit";

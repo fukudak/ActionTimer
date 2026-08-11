@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a1410">
+  <meta name="theme-color" content="#0b0a09">
   <title>吉日タイマー</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -12,8 +12,11 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>吉日タイマー</h1>
-    <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+    <div class="header-main">
+      <h1>吉日タイマー</h1>
+      <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+    </div>
+    <p class="seal">72h有限の明かり</p>
   </header>
 
   <main>
@@ -22,32 +25,33 @@
 
     <!-- 登録フォーム -->
     <form id="add-form" class="add-form" autocomplete="off">
+      <label for="add-input">72時間以内に始めること</label>
       <input id="add-input" type="text" maxlength="100"
-             placeholder="やろうと思ったことは?" required>
-      <button type="submit" class="btn-ignite">点火</button>
+             placeholder="思い立ったことを書く" required>
+      <button type="submit" class="btn-ignite">点火する</button>
     </form>
 
     <!-- 燃えているリスト -->
-    <section class="list-section">
-      <h2>🔥 燃えている</h2>
+    <section class="list-section" aria-labelledby="burning-heading">
+      <h2 id="burning-heading">燃えている</h2>
       <ul id="burning-list" class="card-list"></ul>
       <p id="burning-empty" class="empty-note" hidden>
-        いまは何も燃えていません。思い立ったら点火しましょう。
+        まだ火はありません。思い立ったことを記すと、72時間の導火線が動き始めます。
       </p>
     </section>
 
     <!-- 始めたリスト -->
-    <section class="list-section">
-      <h2>✅ 始めた</h2>
+    <section class="list-section" aria-labelledby="started-heading">
+      <h2 id="started-heading">始めたこと</h2>
       <ul id="started-list" class="card-list"></ul>
       <p id="started-empty" class="empty-note" hidden>
-        着手して「やったこと」を書くと、ここに移ります。
+        始めた記録はありません。行動した内容を記録すると、ここに残ります。
       </p>
     </section>
 
     <!-- バックアップ(端末変更・データ削除への備え) -->
-    <section class="data-section">
-      <h2>💾 バックアップ</h2>
+    <section class="data-section" aria-labelledby="data-heading">
+      <h2 id="data-heading">データの保管</h2>
       <p class="data-note">
         データはこの端末のブラウザ内だけに保存されます。書き出しておくと、端末変更やデータ削除に備えられます。
       </p>

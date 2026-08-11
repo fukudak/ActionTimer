@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "mkdir -p dist/icons && cp index.html style.css app.js sw.js manifest.webmanifest dist/ && cp icons/icon.svg icons/icon-512.png icons/apple-touch-icon.png dist/icons/",
+    "test": "node --test tests/*.test.mjs",
     "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {

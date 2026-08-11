@@ -135,10 +135,13 @@ test("urgent_color_threshold_at_exactly_12h", () => {
   });
   const remainingEl = app.burningCards()[0].querySelector(".remaining");
   assert.equal(remainingEl.classList.contains("urgent"), false);
+  assert.equal(remainingEl.textContent, "残り 12時間0分");
+  assert.equal(remainingEl.textContent.includes("期限間近"), false);
 
   app.advance(1);
   app.ctx.tick();
   assert.equal(remainingEl.classList.contains("urgent"), true);
+  assert.equal(remainingEl.textContent, "残り 11時間59分・期限間近");
 });
 
 test("format_remaining_at_unit_boundaries", () => {
