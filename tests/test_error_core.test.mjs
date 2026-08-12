@@ -44,8 +44,10 @@ test("two_tabs_last_write_wins", () => {
 
 test("delete_confirm_uses_exact_text", () => {
   let message;
-  const app = loadApp({ now: T0, confirm: (text) => { message = text; return false; } });
-  app.ctx.importState({ unexploded: [{ id: "u", title: "危険な項目", createdAt: T0, failedAt: T0 }] });
-  app.unexplodedCards()[0].querySelector(".btn-delete").dispatch("click");
+  const confirm = (text) => { message = text; return false; };
+  const app = loadApp({ now: T0, confirm });
+  app.storage.setItem("kichijitsu-timer-v1", JSON.stringify({ pending: [], unexploded: [{ id: "u", title: "危険な項目", createdAt: T0, failedAt: T0 }] }));
+  const restarted = loadApp({ now: T0, storage: app.storage, confirm });
+  restarted.unexplodedCards()[0].querySelector(".btn-delete").dispatch("click");
   assert.equal(message, "「危険な項目」を削除します。この操作は取り消せません。");
 });

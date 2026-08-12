@@ -11,7 +11,6 @@
   --danger: #ff4d2e;
   --safe: #ffb84d;
   --started: #4caf78;
-  --completion: #748f6d;
   --unexploded: #a87955;
 }
 
@@ -32,9 +31,6 @@ body {
 
 /* ============ ヘッダー ============ */
 .app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
   min-width: 0;
   padding: 24px 0 16px;
   border-bottom: 1px solid #2a2a2a;
@@ -57,19 +53,6 @@ body {
   letter-spacing: 0.05em;
 }
 
-.seal {
-  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
-  font-size: 0.7rem;
-  color: var(--text-dim);
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
-  padding: 4px 8px;
-  border: 1px solid #786b60;
-  border-radius: 4px;
-  background: #1a1816;
-}
 
 /* ============ 保存エラーバナー ============ */
 .save-error {
@@ -314,81 +297,6 @@ body {
 .btn-reignite, .btn-delete { min-height: 44px; min-width: 44px; padding: 8px 12px; border: 1px solid var(--unexploded); border-radius: 8px; background: transparent; color: #d8b99b; font: inherit; cursor: pointer; white-space: nowrap; }
 .btn-delete { border-color: var(--danger); color: #ff927e; }
 
-/* ============ バックアップ ============ */
-.data-section {
-  margin-top: 32px;
-  border-top: 1px solid #2a2a2a;
-  padding-top: 20px;
-}
-
-.data-section h2 {
-  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 0 0 12px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.data-section h2::before {
-  content: "";
-  width: 2px;
-  height: 1.2em;
-  background: var(--completion);
-  flex-shrink: 0;
-}
-
-.data-note {
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  margin: 0 0 14px;
-  line-height: 1.6;
-}
-
-.data-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.btn-data {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 16px;
-  border: 1px solid var(--card-edge);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--text-dim);
-  font-size: 0.9rem;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-@media (hover: hover) {
-  .btn-data:hover { color: var(--text); border-color: var(--text-dim); }
-}
-.btn-data:active { transform: scale(0.98); }
-.btn-data:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.data-status {
-  margin: 12px 0 0;
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--card);
-  border: 1px solid var(--card-edge);
-}
-
-.data-status.error {
-  background: #5c1a0e;
-  border-color: var(--danger);
-  color: #ffd9cf;
-}
 
 /* ============ レスポンシブ ============ */
 @media screen and (min-width: 480px) {
@@ -411,16 +319,12 @@ body {
 
   .add-form { max-width: 560px; }
 
-  .list-section h2,
-  .data-section h2 { font-size: 1.1rem; }
+  .list-section h2 { font-size: 1.1rem; }
 
 }
 
 @media screen and (max-width: 320px) {
   body { padding: env(safe-area-inset-top) 12px calc(40px + env(safe-area-inset-bottom)); }
-
-  .app-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .seal { writing-mode: horizontal-tb; }
 }
 
 /* ============ モーション軽減 ============ */

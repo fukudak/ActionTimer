@@ -94,17 +94,6 @@ test("unknown_reignite_and_delete_are_noops", () => {
   assert.equal(app.readStorage(), null);
 });
 
-test("import_duplicate_ids_across_payload_lists_are_skipped", () => {
-  const app = loadApp({ now: T0 });
-  const added = app.ctx.importState({ pending: [item("p", "pending")], unexploded: [{ id: "p", title: "duplicate", createdAt: T0, failedAt: T0 }, { id: "u", title: "u", createdAt: T0, failedAt: T0 }] });
-  assert.equal(added, 2); assert.deepEqual(app.readStorage().unexploded.map((x) => x.id), ["u"]);
-});
-
-test("import_old_started_is_discarded", () => {
-  const app = loadApp({ now: T0 });
-  assert.equal(app.ctx.importState({ started: [{ id: "old", title: "旧", createdAt: T0 }] }), 0);
-  assert.equal(app.ctx.serializeState().includes("started"), false);
-});
 
 test("quota_failure_keeps_ui_state_and_shows_banner", () => {
   const app = loadApp({ now: T0 }); app.storage.setItem = () => { throw new Error("quota"); };

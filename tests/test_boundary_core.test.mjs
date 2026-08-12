@@ -30,7 +30,7 @@ test("expired_pending_is_normalized_before_render_and_persisted", () => {
 test("legacy_started_is_discarded", () => {
   const app = loadApp({ now: T0, storage: storage({ pending: [], started: [{ id: "s", title: "旧", createdAt: T0, startedAt: T0, actions: [] }] }) });
   assert.deepEqual(app.readStorage(), { pending: [], unexploded: [] });
-  assert.equal(app.ctx.serializeState().includes("started"), false);
+  assert.equal(app.readStorage().started, undefined);
 });
 
 test("legacy_top_level_actions_and_extra_keys_are_discarded", () => {
@@ -66,11 +66,12 @@ test("interval_stops_when_empty_and_restarts_once", () => {
   card.querySelector(".btn-start").dispatch("click");
   assert.equal(app.intervals.length, 0);
   app.ctx.reigniteItem("missing");
-  app.ctx.importState({ pending: [], unexploded: [{ id: "u", title: "u", createdAt: T0, failedAt: T0 }] });
-  app.unexplodedCards()[0].querySelector(".btn-reignite").dispatch("click");
-  assert.equal(app.intervals.length, 1);
-  app.unexplodedCards()[0]?.querySelector(".btn-reignite")?.dispatch("click");
-  assert.equal(app.intervals.length, 1);
+  app.storage.setItem("kichijitsu-timer-v1", JSON.stringify({ pending: [], unexploded: [{ id: "u", title: "u", createdAt: T0, failedAt: T0 }] }));
+  const restarted = loadApp({ now: T0, storage: app.storage });
+  restarted.unexplodedCards()[0].querySelector(".btn-reignite").dispatch("click");
+  assert.equal(restarted.intervals.length, 1);
+  restarted.unexplodedCards()[0]?.querySelector(".btn-reignite")?.dispatch("click");
+  assert.equal(restarted.intervals.length, 1);
 });
 
 test("remaining_boundaries_urgent_future_leap_and_mass_render", () => {

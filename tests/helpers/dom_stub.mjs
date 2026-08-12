@@ -68,7 +68,6 @@ export class FakeElement {
     this.value = "";
     this.id = "";
     this.tabIndex = 0;
-    this.clickCount = 0;
     this._listeners = {};
     this.classList = new FakeClassList(this);
   }
@@ -114,7 +113,6 @@ export class FakeElement {
   }
 
   click() {
-    this.clickCount += 1;
     this.dispatch("click");
   }
 
@@ -157,7 +155,7 @@ export class FakeElement {
 function createDocument() {
   const ids = {};
   const created = [];
-  const inputIds = new Set(["add-input", "import-input"]);
+  const inputIds = new Set(["add-input"]);
   for (const id of [
     "burning-list",
     "unexploded-list",
@@ -168,10 +166,6 @@ function createDocument() {
     "save-error",
     "add-form",
     "add-input",
-    "export-btn",
-    "import-btn",
-    "import-input",
-    "data-status",
     "ui-status",
   ]) {
     ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
@@ -229,31 +223,6 @@ export function loadApp(options = {}) {
     }
   }
 
-  // exportData() が使う Blob/URL/FileReader のスタブ
-  let lastExportedText = null;
-  class FakeBlob {
-    constructor(parts) {
-      this._text = parts.join("");
-    }
-  }
-  const FakeURL = {
-    createObjectURL: (blob) => {
-      lastExportedText = blob._text;
-      return "blob:fake";
-    },
-    revokeObjectURL: () => {},
-  };
-  class FakeFileReader {
-    readAsText(file) {
-      // テストでは file._text に読み込み対象の文字列を入れておく
-      try {
-        this.result = file._text ?? "";
-        this.onload && this.onload();
-      } catch (e) {
-        this.onerror && this.onerror(e);
-      }
-    }
-  }
 
   const ctx = {
     document: doc,
@@ -270,11 +239,7 @@ export function loadApp(options = {}) {
       const idx = intervals.findIndex((i) => i.id === id);
       if (idx >= 0) intervals.splice(idx, 1);
     },
-    Blob: FakeBlob,
-    URL: FakeURL,
-    FileReader: FakeFileReader,
     confirm: options.confirm ?? (() => true),
-    _getLastExportedText: () => lastExportedText,
   };
 
   vm.runInNewContext(readFileSync(APP_PATH, "utf8"), ctx, {
@@ -312,19 +277,7 @@ export function loadApp(options = {}) {
     burningCards() {
       return doc._ids["burning-list"].children;
     },
-    // バックアップ操作ヘルパ: 書き出しボタンをクリックする
-    clickExport() {
-      doc._ids["export-btn"].dispatch("click");
-    },
-    // バックアップ操作ヘルパ: JSON文字列のファイルを読み込む
-    simulateImport(jsonText) {
-      const fakeFile = { _text: jsonText };
-      doc._ids["import-input"].files = [fakeFile];
-      doc._ids["import-input"].dispatch("change");
-    },
-    dataStatus() {
-      return doc._ids["data-status"];
-    },
+
     unexplodedCards() {
       return doc._ids["unexploded-list"].children;
     },

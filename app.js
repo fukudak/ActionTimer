@@ -131,37 +131,7 @@ function deleteUnexploded(id) {
   uiStatusEl.textContent = `「${item.title}」を削除しました。`;
   focusHeading(unexplodedHeading);
 }
-function serializeState() { return JSON.stringify(state, null, 2); }
-function backupStamp(now = new Date()) { const p = (n) => String(n).padStart(2, "0"); return `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}`; }
-function exportData() {
-  const blob = new Blob([serializeState()], { type: "application/json" });
-  const url = URL.createObjectURL(blob); const a = document.createElement("a");
-  a.href = url; a.download = `kichijitsu-backup-${backupStamp()}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  showDataStatus("データを書き出しました。安全な場所に保管してください。");
-}
-function importState(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data)) return 0;
-  const incoming = normalize(data);
-  const known = new Set([...state.pending, ...state.unexploded].map((it) => it.id));
-  let added = 0;
-  for (const item of [...incoming.pending, ...incoming.unexploded]) {
-    if (known.has(item.id)) continue;
-    const target = item.failedAt !== undefined ? state.unexploded : state.pending;
-    target.push(item); known.add(item.id); added++;
-  }
-  saveState(); render(); return added;
-}
-function importFromFile(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    let data; try { data = JSON.parse(reader.result); } catch { showDataStatus("読み込みに失敗しました。JSONとして壊れているようです。", true); return; }
-    if (!data || typeof data !== "object" || Array.isArray(data)) { showDataStatus("読み込みに失敗しました。対応していない形式です。", true); return; }
-    const added = importState(data);
-    showDataStatus(added > 0 ? `${added}件を読み込みました。` : "追加された項目はありませんでした(すべて取り込み済みか対象なし)。");
-  };
-  reader.onerror = () => showDataStatus("ファイルの読み込み中にエラーが発生しました。", true);
-  reader.readAsText(file);
-}
+
 const burningList = document.getElementById("burning-list");
 const unexplodedList = document.getElementById("unexploded-list");
 const burningEmpty = document.getElementById("burning-empty");
@@ -169,11 +139,9 @@ const unexplodedEmpty = document.getElementById("unexploded-empty");
 const burningHeading = document.getElementById("burning-heading");
 const unexplodedHeading = document.getElementById("unexploded-heading");
 const saveErrorEl = document.getElementById("save-error");
-const dataStatusEl = document.getElementById("data-status");
 const uiStatusEl = document.getElementById("ui-status");
 if (needsPersist) saveState();
 function focusHeading(el) { el?.focus?.(); }
-function showDataStatus(message, isError = false) { dataStatusEl.textContent = message; dataStatusEl.classList.toggle("error", isError); dataStatusEl.hidden = false; }
 function formatRemaining(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; const s = Math.floor((ms % MS_PER_MINUTE) / 1000); if (h > 0) return `残り ${h}時間${m}分`; if (m > 0) return `残り ${m}分${s}秒`; return `残り ${s}秒`; }
 function formatDateTime(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 function render() { renderBurning(); renderUnexploded(); }
@@ -228,7 +196,5 @@ function renderUnexploded() {
 }
 
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
-document.getElementById("export-btn").addEventListener("click", exportData);
-const importInput = document.getElementById("import-input"); document.getElementById("import-btn").addEventListener("click", () => { importInput.value = ""; importInput.click(); }); importInput.addEventListener("change", () => { const file = importInput.files && importInput.files[0]; if (file) importFromFile(file); });
 render();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch((e) => console.error("Service Workerの登録に失敗しました。", e));

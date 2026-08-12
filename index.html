@@ -16,7 +16,6 @@
       <h1>吉日タイマー</h1>
       <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
     </div>
-    <p class="seal">72h有限の明かり</p>
   </header>
 
   <main>
@@ -46,20 +45,6 @@
       <h2 id="unexploded-heading" tabindex="-1">不発弾</h2>
       <ul id="unexploded-list" class="card-list"></ul>
       <p id="unexploded-empty" class="empty-note" hidden>不発弾はありません。燃え尽きた項目はここに残ります。</p>
-    </section>
-
-    <!-- バックアップ(端末変更・データ削除への備え) -->
-    <section class="data-section" aria-labelledby="data-heading">
-      <h2 id="data-heading">データの保管</h2>
-      <p class="data-note">
-        データはこの端末のブラウザ内だけに保存されます。書き出しておくと、端末変更やデータ削除に備えられます。
-      </p>
-      <div class="data-actions">
-        <button type="button" id="export-btn" class="btn-data">書き出す</button>
-        <button type="button" id="import-btn" class="btn-data">読み込む</button>
-        <input type="file" id="import-input" accept="application/json,.json" hidden>
-      </div>
-      <p id="data-status" class="data-status" role="status" aria-live="polite" hidden></p>
     </section>
   </main>
 

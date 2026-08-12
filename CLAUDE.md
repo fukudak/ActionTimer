@@ -21,7 +21,7 @@
 
 ## Known Debt
 
-- localStorageのみのため、ブラウザデータ削除・端末変更でデータは失われる(設計上許容。バックアップの書き出し/読み込みで緩和)。
+- localStorageのみのため、ブラウザデータ削除・端末変更でデータは失われる。インポート／エクスポートは提供しない。
 - 残り時間の計算は端末時計に依存。時計を操作すれば燃焼を巻き戻せる(対策しない)。
 
 ## Failure Modes
@@ -34,6 +34,6 @@
 
 - 起動: `python3 -m http.server 8000` などで配信(Service Workerは `file://` では動かない)。
 - 構成: `index.html` / `style.css` / `app.js` / `sw.js` / `manifest.webmanifest` / `icons/`
-- テスト: `node --test "tests/*.test.mjs"`(正常系/境界値/異常系の3層 + バックアップ + DOMスタブ。詳細は `docs/testing.md`)。
+- テスト: `node --test "tests/*.test.mjs"`(正常系/境界値/異常系の3層 + 回帰 + 撤去契約 + DOMスタブ。詳細は `docs/testing.md`)。
 - 手動検証: `docs/testing.md` の手順書に従う(SW・プライベートモード等の実ブラウザ事象)。
 - 設計・テスト・運用の判断は `docs/` に記録する(目次は `docs/README.md`。`design.md` / `testing.md` / `operations.md`)。
