@@ -68,13 +68,17 @@ export class FakeElement {
     this.value = "";
     this.id = "";
     this.tabIndex = 0;
+    this.clickCount = 0;
     this._listeners = {};
     this.classList = new FakeClassList(this);
   }
 
   setAttribute(k, v) {
     if (k === "class") this.className = String(v);
-    else this.attributes[k] = String(v);
+    else {
+      this.attributes[k] = String(v);
+      if (k === "tabindex") this.tabIndex = Number(v);
+    }
   }
 
   getAttribute(k) {
@@ -107,6 +111,11 @@ export class FakeElement {
   dispatch(type, event = {}) {
     event.preventDefault ||= () => {};
     for (const fn of this._listeners[type] || []) fn(event);
+  }
+
+  click() {
+    this.clickCount += 1;
+    this.dispatch("click");
   }
 
   focus() {}
@@ -147,12 +156,15 @@ export class FakeElement {
 // index.htmlに存在するID要素を持つdocumentスタブを作る
 function createDocument() {
   const ids = {};
+  const created = [];
   const inputIds = new Set(["add-input", "import-input"]);
   for (const id of [
     "burning-list",
-    "started-list",
+    "unexploded-list",
     "burning-empty",
-    "started-empty",
+    "unexploded-empty",
+    "burning-heading",
+    "unexploded-heading",
     "save-error",
     "add-form",
     "add-input",
@@ -163,19 +175,24 @@ function createDocument() {
     "ui-status",
   ]) {
     ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
+    if (id === "burning-heading" || id === "unexploded-heading") ids[id].setAttribute("tabindex", "-1");
   }
 
-  // FakeElement.body: exportData() が使う document.body.appendChild に対応
+  // 実DOM同様、appendChild自体はクリックを発火しない。
   const body = new FakeElement("body");
-  body.appendChild = (el) => { el.href && el.click && el.click(); };
 
   return {
     getElementById: (id) => ids[id] ?? null,
-    createElement: (tag) => new FakeElement(tag),
+    createElement: (tag) => {
+      const element = new FakeElement(tag);
+      created.push(element);
+      return element;
+    },
     createElementNS: (_ns, tag) => new FakeElement(tag),
     addEventListener() {},
     body,
     _ids: ids,
+    _created: created,
   };
 }
 
@@ -203,6 +220,10 @@ export function loadApp(options = {}) {
   const intervals = [];
 
   class FakeDate extends Date {
+    constructor(...args) {
+      super(...(args.length ? args : [fakeNow]));
+    }
+
     static now() {
       return fakeNow;
     }
@@ -216,7 +237,10 @@ export function loadApp(options = {}) {
     }
   }
   const FakeURL = {
-    createObjectURL: () => "blob:fake",
+    createObjectURL: (blob) => {
+      lastExportedText = blob._text;
+      return "blob:fake";
+    },
     revokeObjectURL: () => {},
   };
   class FakeFileReader {
@@ -249,6 +273,7 @@ export function loadApp(options = {}) {
     Blob: FakeBlob,
     URL: FakeURL,
     FileReader: FakeFileReader,
+    confirm: options.confirm ?? (() => true),
     _getLastExportedText: () => lastExportedText,
   };
 
@@ -300,8 +325,8 @@ export function loadApp(options = {}) {
     dataStatus() {
       return doc._ids["data-status"];
     },
-    startedCards() {
-      return doc._ids["started-list"].children;
+    unexplodedCards() {
+      return doc._ids["unexploded-list"].children;
     },
   };
 }

@@ -34,20 +34,18 @@
 
     <!-- 燃えているリスト -->
     <section class="list-section" aria-labelledby="burning-heading">
-      <h2 id="burning-heading">燃えている</h2>
+      <h2 id="burning-heading" tabindex="-1">燃えている</h2>
       <ul id="burning-list" class="card-list"></ul>
       <p id="burning-empty" class="empty-note" hidden>
         まだ火はありません。思い立ったことを記すと、72時間の導火線が動き始めます。
       </p>
     </section>
 
-    <!-- 始めたリスト -->
-    <section class="list-section" aria-labelledby="started-heading">
-      <h2 id="started-heading">始めたこと</h2>
-      <ul id="started-list" class="card-list"></ul>
-      <p id="started-empty" class="empty-note" hidden>
-        始めた記録はありません。行動した内容を記録すると、ここに残ります。
-      </p>
+    <!-- 不発弾リスト -->
+    <section id="unexploded-section" class="list-section list-section--unexploded" aria-labelledby="unexploded-heading">
+      <h2 id="unexploded-heading" tabindex="-1">不発弾</h2>
+      <ul id="unexploded-list" class="card-list"></ul>
+      <p id="unexploded-empty" class="empty-note" hidden>不発弾はありません。燃え尽きた項目はここに残ります。</p>
     </section>
 
     <!-- バックアップ(端末変更・データ削除への備え) -->
