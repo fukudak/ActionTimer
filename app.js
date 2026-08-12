@@ -49,6 +49,12 @@ function loadState() {
   }
 }
 
+// Date APIで安全に扱える有限タイムスタンプか判定する。
+// Number.MAX_VALUEのような有限値でもDate範囲外なら描画時にRangeErrorになるため除外する。
+function isValidTimestamp(value) {
+  return Number.isFinite(value) && !Number.isNaN(new Date(value).getTime());
+}
+
 // 形の壊れた項目を除外する(旧バージョンや手編集されたデータで起動不能になるのを防ぐ)
 function sanitizeItems(list, isStarted) {
   if (!Array.isArray(list)) return [];
@@ -57,12 +63,12 @@ function sanitizeItems(list, isStarted) {
       it &&
       typeof it.id === "string" &&
       typeof it.title === "string" &&
-      Number.isFinite(it.createdAt) &&
+      isValidTimestamp(it.createdAt) &&
       (!isStarted ||
-        (Number.isFinite(it.startedAt) &&
+        (isValidTimestamp(it.startedAt) &&
           Array.isArray(it.actions) &&
           it.actions.every(
-            (a) => a && typeof a.text === "string" && Number.isFinite(a.at)
+            (a) => a && typeof a.text === "string" && isValidTimestamp(a.at)
           )))
   );
 }
@@ -107,6 +113,12 @@ function startItem(id, actionText) {
   });
   saveState();
   render();
+  const started = [...startedList.children].find((el) => el.dataset.id === id);
+  if (started) {
+    started.classList.add("is-just-started");
+    started.focus();
+  }
+  uiStatusEl.textContent = `「${item.title}」を着手済みに移動しました。`;
 }
 
 // 始めた項目に「やったこと」を追記する
@@ -222,6 +234,7 @@ const burningEmpty = document.getElementById("burning-empty");
 const startedEmpty = document.getElementById("started-empty");
 const saveErrorEl = document.getElementById("save-error");
 const dataStatusEl = document.getElementById("data-status");
+const uiStatusEl = document.getElementById("ui-status");
 
 // バックアップ操作の結果メッセージを表示する
 function showDataStatus(message, isError = false) {
@@ -259,21 +272,52 @@ function renderBurning() {
 
   for (const item of state.pending) {
     const li = document.createElement("li");
-    li.className = "card";
+    li.className = "card task-row task-row--burning";
     li.dataset.id = item.id;
     li.dataset.createdAt = String(item.createdAt);
 
+    li.style.setProperty("--burn-progress", "0");
+    li.style.setProperty("--burn-edge", "100%");
+    const note = document.createElement("div");
+    note.className = "task-row__note";
+    const sticky = document.createElement("div");
+    sticky.className = "sticky-note";
+    const ash = document.createElement("div");
+    ash.className = "sticky-note__ash";
+    ash.setAttribute("aria-hidden", "true");
+    const surface = document.createElement("div");
+    surface.className = "sticky-note__surface";
+    surface.setAttribute("aria-hidden", "true");
+    const front = document.createElement("div");
+    front.className = "sticky-note__burn-front";
+    front.setAttribute("aria-hidden", "true");
     const title = document.createElement("p");
-    title.className = "card-title";
+    title.className = "sticky-note__title card-title";
     title.textContent = item.title;
-
-    const meta = document.createElement("p");
-    meta.className = "card-meta";
-    meta.innerHTML =
-      `${formatDateTime(item.createdAt)} に点火 ` +
-      `<span class="remaining"></span>`;
-
-    li.append(title, meta, buildCoilSvg(), buildStartControls(item.id));
+    sticky.append(ash, surface, front, title);
+    const progress = document.createElement("progress");
+    progress.className = "burn-meter";
+    progress.min = 0;
+    progress.max = 1;
+    progress.value = 0;
+    progress.setAttribute("aria-label", "燃焼進行度");
+    note.append(sticky, progress);
+    const meta = document.createElement("div");
+    meta.className = "task-row__meta card-meta";
+    const badge = document.createElement("span");
+    badge.className = "status-badge";
+    const badgeText = document.createElement("span");
+    badgeText.className = "status-badge__text";
+    badgeText.textContent = "燃焼中";
+    badge.appendChild(badgeText);
+    const remainingEl = document.createElement("span");
+    remainingEl.className = "remaining";
+    const ignited = document.createElement("time");
+    ignited.className = "ignited-at";
+    ignited.setAttribute("datetime", new Date(item.createdAt).toISOString());
+    ignited.textContent = `${formatDateTime(item.createdAt)} 点火`;
+    meta.append(badge, remainingEl, ignited);
+    li.append(note, meta, buildStartControls(item.id));
     burningList.appendChild(li);
   }
 
@@ -294,82 +338,29 @@ function renderBurning() {
   tick();
 }
 
-// ============ 蚊取り線香の描画 ============
-
-const SVG_NS = "http://www.w3.org/2000/svg";
-const COIL_W = 320;
-const COIL_H = 100;
-const COIL_INSET = 8;
-
-// 長方形の枠線パスを生成する。右辺の中央が始点で、そこから一周して戻る
-// (右から点火され、ぐるりと一周燃えて燃え尽きる)
-function buildRectPathD() {
-  const l = COIL_INSET;
-  const t = COIL_INSET;
-  const r = COIL_W - COIL_INSET;
-  const b = COIL_H - COIL_INSET;
-  const my = COIL_H / 2;
-  const pts = [[r, my], [r, t], [l, t], [l, b], [r, b], [r, my]];
-  return "M" + pts.map(([x, y]) => `${x} ${y}`).join(" L");
-}
-
-const COIL_PATH_D = buildRectPathD();
-
-// 線香(長方形の枠線)・灰の跡・火種を重ねたSVGを作る
-function buildCoilSvg() {
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${COIL_W} ${COIL_H}`);
-  svg.setAttribute("class", "coil");
-  svg.setAttribute("aria-hidden", "true");
-  svg.setAttribute("focusable", "false");
-  svg.innerHTML =
-    `<path class="coil-ash" d="${COIL_PATH_D}"/>` +
-    `<path class="coil-fuse" d="${COIL_PATH_D}"/>` +
-    `<g class="coil-ember">` +
-    `<circle class="ember-glow" r="9"/>` +
-    `<circle class="ember-core" r="4"/>` +
-    `</g>`;
-  return svg;
-}
-
-// 毎秒の更新: DOMは作り直さず、残り時間表示と線香の燃え具合だけ書き換える
+// 毎秒の更新: DOMは作り直さず、残り時間と燃焼進行だけを書き換える
 // (作り直すと入力中の「やったこと」フォームが消えてしまうため)
 function tick() {
   const now = Date.now();
 
   for (const li of burningList.children) {
     const remaining = Number(li.dataset.createdAt) + LIMIT_MS - now;
-    const ratio = Math.max(0, Math.min(1, remaining / LIMIT_MS));
+    const burnProgress = Math.max(0, Math.min(1, (now - Number(li.dataset.createdAt)) / LIMIT_MS));
     const urgent = remaining > 0 && remaining < URGENT_THRESHOLD_MS;
 
     const remainingEl = li.querySelector(".remaining");
-    remainingEl.textContent =
-      remaining > 0
-        ? `${formatRemaining(remaining)}${urgent ? "・期限間近" : ""}`
-        : "燃え尽きました…";
+    remainingEl.textContent = remaining > 0 ? formatRemaining(remaining) : "燃え尽きました";
     remainingEl.classList.toggle("urgent", urgent);
-
-    // 燃えた長さ分だけパスの先頭(外側)を消し、火種を燃焼点へ動かす
-    const fuse = li.querySelector(".coil-fuse");
-    let total = Number(fuse.dataset.total);
-    if (!total) {
-      total = fuse.getTotalLength();
-      fuse.dataset.total = total;
-    }
-    // dasharray+dashoffsetで外側(始点)からburntLen分を非表示にする
-    // (長さ0のダッシュはlinecap:roundだと点として描かれてしまうため、この方式)
-    const burntLen = (1 - ratio) * total;
-    fuse.setAttribute("stroke-dasharray", `${total}`);
-    fuse.setAttribute("stroke-dashoffset", `${-burntLen}`);
-
-    const ember = li.querySelector(".coil-ember");
-    if (remaining > 0) {
-      const p = fuse.getPointAtLength(burntLen);
-      ember.setAttribute("transform", `translate(${p.x} ${p.y})`);
-      ember.style.display = "";
-    } else {
-      ember.style.display = "none";
-    }
+    const badgeText = li.querySelector(".status-badge__text");
+    const progress = li.querySelector(".burn-meter");
+    badgeText.textContent = remaining > 0 ? (urgent ? "期限間近" : "燃焼中") : "燃え尽きました";
+    const visualBurn = remaining <= 0 ? 1 : burnProgress * 0.6;
+    const burnEdge = `${(1 - visualBurn) * 100}%`;
+    li.style.setProperty("--burn-progress", String(burnProgress));
+    li.style.setProperty("--burn-edge", burnEdge);
+    progress.value = burnProgress;
+    li.classList.toggle("is-urgent", urgent);
+    li.classList.toggle("is-expired", remaining <= 0);
 
     if (remaining <= 0) {
       const id = li.dataset.id;
@@ -377,8 +368,8 @@ function tick() {
       if (!burningOut.has(id)) {
         burningOut.add(id);
         li.classList.add("burn-out");
-        li.querySelector(".btn-start")?.remove();
-        li.querySelector(".start-form")?.remove();
+        li.querySelector(".btn-start")?.setAttribute("disabled", "true");
+        li.querySelector(".start-form")?.querySelectorAll("input,button").forEach((el) => el.setAttribute("disabled", "true"));
         setTimeout(() => expireItem(id), BURNOUT_ANIM_MS);
       }
     }
@@ -388,6 +379,7 @@ function tick() {
 // 「着手した」ボタンと、やったこと入力フォーム
 function buildStartControls(id) {
   const wrap = document.createElement("div");
+  wrap.className = "task-row__actions";
 
   const btn = document.createElement("button");
   btn.type = "button";
@@ -398,15 +390,20 @@ function buildStartControls(id) {
   form.className = "start-form";
   form.hidden = true;
   const input = document.createElement("input");
+  input.id = `action-${id}`;
   input.type = "text";
   input.maxLength = ACTION_TEXT_MAXLEN;
   input.placeholder = "何をやった?(必須)";
   input.setAttribute("aria-label", "着手して行ったこと");
   input.required = true;
+  const label = document.createElement("label");
+  label.className = "sr-only";
+  label.setAttribute("for", input.id);
+  label.textContent = "着手して行ったこと";
   const submit = document.createElement("button");
   submit.type = "submit";
   submit.textContent = "記録";
-  form.append(input, submit);
+  form.append(label, input, submit);
 
   btn.addEventListener("click", () => {
     form.hidden = false;
@@ -431,11 +428,21 @@ function renderStarted() {
 
   for (const item of state.started) {
     const li = document.createElement("li");
-    li.className = "card started";
+    li.className = "card task-row task-row--started started";
+    li.dataset.id = item.id;
+    li.tabIndex = -1;
+
+    const main = document.createElement("div");
+    main.className = "task-row__started-main";
+    const badge = document.createElement("span");
+    badge.className = "status-badge status-badge--started";
+    badge.textContent = "✓ 着手済み";
 
     const title = document.createElement("p");
     title.className = "card-title";
     title.textContent = item.title;
+
+    main.append(badge, title);
 
     const meta = document.createElement("p");
     meta.className = "card-meta";
@@ -454,19 +461,29 @@ function renderStarted() {
       log.appendChild(entry);
     }
 
+    const details = document.createElement("details");
+    details.className = "task-details";
+    const summary = document.createElement("summary");
+    summary.textContent = `記録 ${item.actions.length}件・追記`;
+
     // 追記フォーム
     const form = document.createElement("form");
     form.className = "start-form";
     const input = document.createElement("input");
+    input.id = `append-${item.id}`;
     input.type = "text";
     input.maxLength = ACTION_TEXT_MAXLEN;
     input.placeholder = "やったことを追記";
     input.setAttribute("aria-label", "やったことを追記");
     input.required = true;
+    const label = document.createElement("label");
+    label.className = "sr-only";
+    label.setAttribute("for", input.id);
+    label.textContent = "やったことを追記";
     const submit = document.createElement("button");
     submit.type = "submit";
     submit.textContent = "追記";
-    form.append(input, submit);
+    form.append(label, input, submit);
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -474,7 +491,8 @@ function renderStarted() {
       appendAction(item.id, text);
     });
 
-    li.append(title, meta, log, form);
+    details.append(summary, log, form);
+    li.append(main, meta, details);
     startedList.appendChild(li);
   }
 

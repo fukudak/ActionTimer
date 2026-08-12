@@ -59,11 +59,15 @@ export class FakeElement {
     this.className = "";
     this.dataset = {};
     this.attributes = {};
-    this.style = {};
+    this.style = {
+      setProperty: (k, v) => { this.style[k] = String(v); },
+      getPropertyValue: (k) => this.style[k] ?? "",
+    };
     this.hidden = false;
     this._textContent = "";
     this.value = "";
-    this._innerHTML = "";
+    this.id = "";
+    this.tabIndex = 0;
     this._listeners = {};
     this.classList = new FakeClassList(this);
   }
@@ -117,25 +121,6 @@ export class FakeElement {
     this.children = [];
   }
 
-  get innerHTML() {
-    return this._innerHTML;
-  }
-
-  // 簡易パース: app.jsが使うフラットなタグ列(span/path/g/circle)だけを
-  // 子要素化する。querySelectorでclass検索できれば十分なため、入れ子や
-  // テキストは再現しない
-  set innerHTML(html) {
-    this._innerHTML = html;
-    this.children = [];
-    const re = /<(\w+)([^>]*)>/g;
-    let m;
-    while ((m = re.exec(html))) {
-      const el = new FakeElement(m[1]);
-      const cls = /class="([^"]*)"/.exec(m[2]);
-      if (cls) el.className = cls[1];
-      this.appendChild(el);
-    }
-  }
 
   querySelector(sel) {
     return this.querySelectorAll(sel)[0] ?? null;
@@ -157,14 +142,6 @@ export class FakeElement {
     return found;
   }
 
-  // SVGパス用。固定長1000として扱い、燃焼位置の計算を検証可能にする
-  getTotalLength() {
-    return 1000;
-  }
-
-  getPointAtLength(len) {
-    return { x: len, y: 0 };
-  }
 }
 
 // index.htmlに存在するID要素を持つdocumentスタブを作る
@@ -183,6 +160,7 @@ function createDocument() {
     "import-btn",
     "import-input",
     "data-status",
+    "ui-status",
   ]) {
     ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
   }

@@ -88,8 +88,10 @@ test("exactly_72h_elapsed_burns_out", () => {
     ]),
   });
   const card = app.burningCards()[0];
-  assert.equal(card.querySelector(".remaining").textContent, "燃え尽きました…");
-  assert.equal(card.querySelector(".coil-ember").style.display, "none");
+  assert.equal(card.querySelector(".remaining").textContent, "燃え尽きました");
+  assert.equal(card.querySelector(".burn-meter").value, 1);
+  assert.equal(card.style.getPropertyValue("--burn-progress"), "1");
+  assert.equal(card.style.getPropertyValue("--burn-edge"), "0%");
   // 燃え尽きアニメーション時間(1600ms)後の削除が予約される
   assert.equal(app.timeouts.length, 1);
   assert.equal(app.timeouts[0].ms, BURNOUT_ANIM_MS);
@@ -137,11 +139,13 @@ test("urgent_color_threshold_at_exactly_12h", () => {
   assert.equal(remainingEl.classList.contains("urgent"), false);
   assert.equal(remainingEl.textContent, "残り 12時間0分");
   assert.equal(remainingEl.textContent.includes("期限間近"), false);
+  assert.equal(app.burningCards()[0].style.getPropertyValue("--burn-edge"), "50%");
 
   app.advance(1);
   app.ctx.tick();
   assert.equal(remainingEl.classList.contains("urgent"), true);
-  assert.equal(remainingEl.textContent, "残り 11時間59分・期限間近");
+  assert.equal(remainingEl.textContent, "残り 11時間59分");
+  assert.ok(Math.abs(Number.parseFloat(app.burningCards()[0].style.getPropertyValue("--burn-edge")) - 50) < 0.000001);
 });
 
 test("format_remaining_at_unit_boundaries", () => {
@@ -166,8 +170,43 @@ test("future_created_at_clamps_fuse_to_full", () => {
       { id: "x1", title: "未来", createdAt: T0 + 3600 * 1000 },
     ]),
   });
-  const fuse = app.burningCards()[0].querySelector(".coil-fuse");
-  assert.equal(fuse.attributes["stroke-dashoffset"], "0");
+  const card = app.burningCards()[0];
+  assert.equal(card.querySelector(".burn-meter").value, 0);
+  assert.equal(card.style.getPropertyValue("--burn-progress"), "0");
+  assert.equal(card.style.getPropertyValue("--burn-edge"), "100%");
+});
+
+test("title_remains_present_throughout_burning", () => {
+  for (const elapsedHours of [0, 36, 60, 71]) {
+    const titleText = `${elapsedHours}時間目の行動`;
+    const app = loadApp({
+      now: T0,
+      storage: storageWithPending([
+        { id: "x1", title: titleText, createdAt: T0 - elapsedHours * 60 * 60 * 1000 },
+      ]),
+    });
+    const card = app.burningCards()[0];
+    const sticky = card.querySelector(".sticky-note");
+    const title = card.querySelector(".sticky-note__title");
+    const surface = card.querySelector(".sticky-note__surface");
+    assert.equal(title.parent, sticky);
+    assert.equal(surface.parent, sticky);
+    assert.equal(title.textContent, titleText);
+    assert.equal(surface.textContent, "");
+  }
+});
+
+test("title_area_remains_at_least_40_percent_before_expiry", () => {
+  const app = loadApp({
+    now: T0,
+    storage: storageWithPending([
+      { id: "x1", title: "終盤", createdAt: T0 - 71 * 60 * 60 * 1000 },
+    ]),
+  });
+  const card = app.burningCards()[0];
+  assert.equal(card.querySelector(".burn-meter").value, 71 / 72);
+  assert.equal(card.style.getPropertyValue("--burn-progress"), String(71 / 72));
+  assert.ok(Math.abs(Number.parseFloat(card.style.getPropertyValue("--burn-edge")) - 40.833333333333336) < 0.000001);
 });
 
 test("epoch_created_at_burns_out_without_crash", () => {
@@ -190,6 +229,53 @@ test("far_future_timestamp_renders_without_crash", () => {
     ]),
   });
   assert.equal(app.burningCards().length, 1);
+});
+
+test("finite_but_out_of_date_range_timestamps_are_excluded", () => {
+  const storage = createLocalStorage();
+  storage.setItem(
+    "kichijitsu-timer-v1",
+    JSON.stringify({
+      pending: [
+        { id: "bad-pending", title: "Date範囲外", createdAt: Number.MAX_VALUE },
+        { id: "valid-pending", title: "有効", createdAt: T0 },
+      ],
+      started: [
+        {
+          id: "bad-started-at",
+          title: "着手日時が範囲外",
+          createdAt: T0,
+          startedAt: Number.MAX_VALUE,
+          actions: [{ text: "実行", at: T0 }],
+        },
+        {
+          id: "bad-action-at",
+          title: "行動日時が範囲外",
+          createdAt: T0,
+          startedAt: T0,
+          actions: [{ text: "実行", at: Number.MAX_VALUE }],
+        },
+        {
+          id: "valid-started",
+          title: "有効な着手済み",
+          createdAt: T0,
+          startedAt: T0,
+          actions: [{ text: "実行", at: T0 }],
+        },
+      ],
+    })
+  );
+
+  const app = loadApp({ now: T0, storage });
+  assert.deepEqual(app.burningCards().map((card) => card.dataset.id), ["valid-pending"]);
+  assert.deepEqual(app.startedCards().map((card) => card.dataset.id), ["valid-started"]);
+  assert.equal(app.burningCards().length, 1);
+  assert.equal(app.startedCards().length, 1);
+
+  // 次の正常な保存時には、sanitized stateだけが永続化される。
+  app.submitAdd("追加項目");
+  assert.deepEqual(app.readStorage().pending.map((it) => it.id).slice(0, 1), ["valid-pending"]);
+  assert.deepEqual(app.readStorage().started.map((it) => it.id), ["valid-started"]);
 });
 
 test("leap_day_is_formatted_correctly", () => {

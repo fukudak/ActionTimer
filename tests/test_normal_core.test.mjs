@@ -14,7 +14,7 @@ const T0 = new Date(2026, 5, 10, 9, 0).getTime();
 function startViaUi(app, card, actionText) {
   card.querySelector(".btn-start").dispatch("click");
   const form = card.querySelector(".start-form");
-  form.children[0].value = actionText;
+  form.children[1].value = actionText;
   form.dispatch("submit");
 }
 
@@ -26,6 +26,14 @@ test("standard_add_creates_burning_item", () => {
   assert.equal(app.burningCards().length, 1);
   const card = app.burningCards()[0];
   assert.equal(card.querySelector(".card-title").textContent, "ブログ記事を書く");
+  const sticky = card.querySelector(".sticky-note");
+  const title = card.querySelector(".sticky-note__title");
+  assert.equal(title.parent, sticky);
+  assert.equal(title.parent, card.querySelector(".sticky-note__surface").parent);
+  assert.equal(card.querySelector(".sticky-note__surface").textContent, "");
+  assert.equal(card.querySelector(".sticky-note__surface").getAttribute("aria-hidden"), "true");
+  assert.equal(card.querySelector(".sticky-note__ash").getAttribute("aria-hidden"), "true");
+  assert.equal(card.querySelector(".sticky-note__burn-front").getAttribute("aria-hidden"), "true");
   assert.equal(card.querySelector(".remaining").textContent, "残り 72時間0分");
 
   const saved = app.readStorage();
@@ -76,7 +84,8 @@ test("append_action_adds_to_log_in_order", () => {
   app.advance(1000);
   const startedCard = app.startedCards()[0];
   const form = startedCard.querySelector(".start-form");
-  form.children[0].value = "2章を読んだ";
+  const input = form.querySelector("input");
+  input.value = "2章を読んだ";
   form.dispatch("submit");
 
   const actions = app.readStorage().started[0].actions;
@@ -150,16 +159,18 @@ test("only_one_interval_timer_is_registered", () => {
   assert.equal(app.intervals[0].ms, 1000);
 });
 
-test("full_fuse_at_ignition_and_remaining_decreases", () => {
-  // 点火直後は線香が満タンで、時間経過で残りが減ることを検証
+test("full_progress_at_ignition_and_remaining_decreases", () => {
+  // 点火直後は燃焼進行0で、時間経過で進行度が増えることを検証
   const app = loadApp({ now: T0 });
   app.submitAdd("燃焼確認");
-  const fuse = app.burningCards()[0].querySelector(".coil-fuse");
-  assert.equal(fuse.attributes["stroke-dashoffset"], "0");
+  const card = app.burningCards()[0];
+  assert.equal(card.querySelector(".burn-meter").value, 0);
+  assert.equal(card.style.getPropertyValue("--burn-progress"), "0");
+  assert.equal(card.style.getPropertyValue("--burn-edge"), "100%");
 
   app.advance(LIMIT_MS / 2); // 36時間経過 → ちょうど半分
   app.ctx.tick();
-  assert.equal(fuse.attributes["stroke-dashoffset"], "-500");
-  const ember = app.burningCards()[0].querySelector(".coil-ember");
-  assert.equal(ember.attributes["transform"], "translate(500 0)");
+  assert.equal(card.querySelector(".burn-meter").value, 0.5);
+  assert.equal(card.style.getPropertyValue("--burn-progress"), "0.5");
+  assert.equal(card.style.getPropertyValue("--burn-edge"), "70%");
 });
