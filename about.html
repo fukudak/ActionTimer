@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0a09">
+  <meta name="description" content="思い立ったが吉日。72時間で燃え尽きる導火線が、あなたの先延ばしを炎で断ち切る。吉日タイマーはアカウント不要・通知なし・ただ燃えていくだけのタイマーアプリです。">
+  <title>吉日タイマー — 思い立ったが吉日、72時間の導火線</title>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <style>
+    :root {
+      --bg:           #0b0a09;
+      --card:         #1e1b18;
+      --card-edge:    #3a2c20;
+      --text:         #f3e9dc;
+      --text-dim:     #a89a88;
+      --text-muted:   #6b5f52;
+      --accent:       #c94a32;
+      --flame-1:      #ffd54a;
+      --flame-2:      #ff7b1c;
+      --serif: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', Georgia, serif;
+      --sans:  'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    /* Noise */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Nav */
+    .lp-nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(11,10,9,0.88);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .lp-nav__brand {
+      font-family: var(--serif); font-size: 1.1rem; font-weight: 500;
+      letter-spacing: 0.12em; color: var(--text); text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .lp-nav__brand svg { width: 28px; height: 28px; flex-shrink: 0; }
+    .lp-nav__cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 20px; background: var(--accent); color: #fff8ee;
+      font-size: 0.875rem; font-weight: 700; font-family: var(--sans);
+      text-decoration: none; border-radius: 8px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    @media (hover: hover) {
+      .lp-nav__cta:hover { background: #a83a25; box-shadow: 0 0 0 3px rgba(201,74,50,0.3); }
+    }
+
+    /* Hero */
+    .hero {
+      position: relative; min-height: 100svh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 60px; overflow: hidden;
+    }
+    .hero::after {
+      content: ''; position: absolute;
+      bottom: -80px; left: 50%; transform: translateX(-50%);
+      width: 480px; height: 480px;
+      background: radial-gradient(ellipse at center, rgba(255,123,28,0.18) 0%, rgba(201,74,50,0.10) 40%, transparent 70%);
+      pointer-events: none; animation: glowPulse 4s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+      50%       { opacity: 1;   transform: translateX(-50%) scale(1.08); }
+    }
+    .fuse-svg {
+      position: relative; z-index: 1;
+      width: min(340px, 90vw); margin-bottom: 40px;
+    }
+    .fuse-line {
+      stroke-dasharray: 200; stroke-dashoffset: 200;
+      animation: fuseGrow 2.2s ease-out 0.4s forwards;
+    }
+    .fuse-ash {
+      stroke-dasharray: 80; stroke-dashoffset: 80;
+      animation: fuseGrow 0.8s ease-out 2.6s forwards;
+    }
+    @keyframes fuseGrow { to { stroke-dashoffset: 0; } }
+    .flame-body { animation: flicker 0.6s ease-in-out 2.0s infinite alternate; transform-origin: 50% 90%; }
+    .flame-tip  { animation: flicker 0.4s ease-in-out 1.8s infinite alternate-reverse; transform-origin: 50% 80%; }
+    @keyframes flicker {
+      from { transform: scaleX(1) scaleY(1) rotate(-1deg); }
+      to   { transform: scaleX(0.92) scaleY(1.06) rotate(1.5deg); }
+    }
+    .hero__eyebrow {
+      position: relative; z-index: 1;
+      font-size: 0.78rem; letter-spacing: 0.2em; color: var(--flame-2);
+      text-transform: uppercase; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .hero__eyebrow::before, .hero__eyebrow::after {
+      content: ''; display: block; width: 32px; height: 1px;
+      background: var(--flame-2); opacity: 0.5;
+    }
+    .hero__title {
+      position: relative; z-index: 1;
+      font-family: var(--serif); font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 500; letter-spacing: 0.15em; line-height: 1.25; margin-bottom: 12px;
+    }
+    .hero__title em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--flame-1) 0%, var(--flame-2) 60%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero__sub {
+      position: relative; z-index: 1;
+      font-size: clamp(0.95rem, 2.5vw, 1.1rem); color: var(--text-dim);
+      max-width: 520px; margin: 0 auto 40px; line-height: 1.85;
+    }
+    .hero__actions {
+      position: relative; z-index: 1;
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; background: var(--accent); color: #fff8ee;
+      font-size: 1rem; font-weight: 700; font-family: var(--sans);
+      text-decoration: none; border-radius: 10px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 4px 24px rgba(201,74,50,0.35);
+    }
+    @media (hover: hover) {
+      .btn-primary:hover {
+        background: #a83a25;
+        box-shadow: 0 6px 32px rgba(201,74,50,0.5);
+        transform: translateY(-1px);
+      }
+    }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; background: transparent; color: var(--text-dim);
+      font-size: 1rem; font-family: var(--sans); text-decoration: none;
+      border: 1px solid var(--card-edge); border-radius: 10px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    @media (hover: hover) {
+      .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+    }
+    .scroll-indicator {
+      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+      z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.1em;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
+    .scroll-indicator svg { opacity: 0.4; }
+
+    /* Sections */
+    .section {
+      position: relative; z-index: 1;
+      padding: 80px 24px; max-width: 900px; margin-inline: auto;
+    }
+    .section + .section { border-top: 1px solid rgba(255,255,255,0.05); }
+    .section__label {
+      font-size: 0.72rem; letter-spacing: 0.22em; color: var(--flame-2);
+      text-transform: uppercase; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section__label::before {
+      content: ''; display: block; width: 24px; height: 1px; background: var(--flame-2);
+    }
+    .section__title {
+      font-family: var(--serif); font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 500; letter-spacing: 0.1em; line-height: 1.35; margin-bottom: 16px;
+    }
+    .section__body {
+      color: var(--text-dim); font-size: 1rem; max-width: 600px; line-height: 1.85;
+    }
+
+    /* Problem */
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px; margin-top: 48px;
+    }
+    .problem-card {
+      background: var(--card); border: 1px solid var(--card-edge); border-radius: 14px;
+      padding: 28px 24px; transition: border-color 0.25s, transform 0.2s;
+    }
+    @media (hover: hover) {
+      .problem-card:hover { border-color: rgba(201,74,50,0.4); transform: translateY(-2px); }
+    }
+    .problem-card__icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+    .problem-card__title {
+      font-family: var(--serif); font-size: 1.05rem; font-weight: 500; margin-bottom: 8px;
+    }
+    .problem-card__desc { font-size: 0.875rem; color: var(--text-dim); line-height: 1.7; }
+
+    /* Steps */
+    .steps { margin-top: 52px; display: grid; gap: 0; }
+    .step { display: grid; grid-template-columns: 56px 1fr; gap: 0 24px; }
+    .step__num-col { display: flex; flex-direction: column; align-items: center; }
+    .step__num {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--card-edge);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--flame-2);
+      flex-shrink: 0; z-index: 1;
+    }
+    .step__connector {
+      flex: 1; width: 1px;
+      background: linear-gradient(to bottom, var(--card-edge), transparent);
+      margin: 6px 0; min-height: 40px;
+    }
+    .step:last-child .step__connector { display: none; }
+    .step__content { padding: 6px 0 48px; }
+    .step__title {
+      font-family: var(--serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 8px;
+    }
+    .step__desc { font-size: 0.9rem; color: var(--text-dim); line-height: 1.75; max-width: 480px; }
+
+    /* Rules */
+    .rules-list { margin-top: 48px; display: grid; gap: 12px; }
+    .rule-item {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px;
+      padding: 20px 22px; transition: border-color 0.2s;
+    }
+    @media (hover: hover) {
+      .rule-item:hover { border-color: rgba(201,74,50,0.3); }
+    }
+    .rule-item__icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+    .rule-item__text { font-size: 0.925rem; color: var(--text-dim); line-height: 1.7; }
+    .rule-item__text strong {
+      font-family: var(--serif); color: var(--text); font-weight: 500;
+      display: block; margin-bottom: 3px; font-size: 1rem;
+    }
+
+    /* Quote */
+    .quote-section {
+      position: relative; z-index: 1; padding: 80px 24px;
+      text-align: center; overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .quote-section::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent, rgba(201,74,50,0.04), transparent);
+      pointer-events: none;
+    }
+    .quote-mark {
+      font-family: var(--serif); font-size: 5rem; line-height: 1;
+      color: var(--accent); opacity: 0.25; display: block; margin-bottom: -20px;
+    }
+    blockquote {
+      font-family: var(--serif); font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 500; letter-spacing: 0.18em; line-height: 1.5;
+      max-width: 700px; margin-inline: auto;
+    }
+    blockquote cite {
+      display: block; margin-top: 20px; font-size: 0.82rem; font-style: normal;
+      letter-spacing: 0.12em; color: var(--text-muted); font-family: var(--sans);
+    }
+
+    /* Features */
+    .features-grid {
+      margin-top: 52px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+    }
+    .feature-chip {
+      background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px;
+      padding: 22px 20px; text-align: center; transition: border-color 0.2s, transform 0.2s;
+    }
+    @media (hover: hover) {
+      .feature-chip:hover { border-color: rgba(255,123,28,0.3); transform: translateY(-2px); }
+    }
+    .feature-chip__icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+    .feature-chip__label {
+      font-family: var(--serif); font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 4px;
+    }
+    .feature-chip__note { font-size: 0.78rem; color: var(--text-dim); }
+
+    /* CTA */
+    .cta-section {
+      position: relative; z-index: 1; padding: 100px 24px; text-align: center; overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(201,74,50,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-72 {
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: baseline; gap: 4px;
+      margin: 0 auto 32px; display: flex; justify-content: center;
+    }
+    .cta-72__num {
+      font-family: var(--serif); font-size: clamp(4rem, 12vw, 7rem); font-weight: 500; line-height: 1;
+      background: linear-gradient(135deg, var(--flame-1) 0%, var(--flame-2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .cta-72__unit {
+      font-family: var(--serif); font-size: clamp(1.2rem, 3vw, 1.8rem); color: var(--text-dim);
+    }
+    .cta-section__title {
+      font-family: var(--serif); font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 500;
+      letter-spacing: 0.15em; margin-bottom: 14px; position: relative; z-index: 1;
+    }
+    .cta-section__sub {
+      color: var(--text-dim); font-size: 0.95rem; margin-bottom: 40px; position: relative; z-index: 1;
+    }
+
+    /* Footer */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 36px 24px; text-align: center;
+      color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.05em;
+      display: flex; flex-direction: column; gap: 12px; align-items: center;
+    }
+    footer nav { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    footer nav a { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+    @media (hover: hover) { footer nav a:hover { color: var(--text); } }
+
+    /* Fade-in */
+    .fade-in {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 480px) {
+      .hero { padding: 70px 18px 50px; }
+      .section { padding: 60px 18px; }
+      .lp-nav { padding: 12px 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .fade-in { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="lp-nav" aria-label="サイトナビゲーション">
+    <a href="./about.html" class="lp-nav__brand" aria-label="吉日タイマー">
+      <svg viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+        <rect width="512" height="512" rx="96" fill="#1a1410"/>
+        <line x1="330" y1="330" x2="430" y2="330" stroke="#55504a" stroke-width="10" stroke-dasharray="14 18" stroke-linecap="round"/>
+        <path d="M82 330 L310 330" stroke="#c98a3e" stroke-width="22" stroke-linecap="round"/>
+        <path d="M82 330 L310 330" stroke="#8a5a26" stroke-width="22" stroke-linecap="round" stroke-dasharray="16 16"/>
+        <path d="M310 318 C 296 280, 322 252, 318 216 C 352 240, 342 268, 348 276 C 356 264, 358 252, 354 238 C 386 270, 384 306, 366 326 C 350 344, 322 342, 310 318 Z" fill="#ff7b1c"/>
+        <path d="M322 312 C 316 292, 330 278, 330 260 C 350 278, 344 296, 350 304 C 354 314, 346 326, 336 326 C 328 326, 324 320, 322 312 Z" fill="#ffd54a"/>
+      </svg>
+      吉日タイマー
+    </a>
+    <a href="./index.html" class="lp-nav__cta" id="nav-open-app">今すぐ使う</a>
+  </nav>
+
+  <main id="main">
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <svg class="fuse-svg" viewBox="0 0 340 120" aria-hidden="true" focusable="false">
+        <line class="fuse-ash" x1="0" y1="70" x2="70" y2="70"
+              stroke="#55504a" stroke-width="6" stroke-dasharray="10 14" stroke-linecap="round"/>
+        <path class="fuse-line"
+              d="M70 70 L130 70"
+              fill="none" stroke="#c98a3e" stroke-width="12" stroke-linecap="round"/>
+        <path class="fuse-line"
+              d="M70 70 L130 70"
+              fill="none" stroke="#8a5a26" stroke-width="12" stroke-linecap="round"
+              stroke-dasharray="12 12" style="animation-delay:0.1s"/>
+        <g class="flame-body">
+          <path d="M130 60 C 118 28,148 4,144 0 C 174 20,162 48,168 58 C 176 46,178 32,174 18 C 200 46,200 76,186 92 C 172 108,146 106,130 80 Z" fill="#ff7b1c"/>
+        </g>
+        <g class="flame-tip">
+          <path d="M142 74 C 136 54,150 40,150 22 C 166 40,160 58,166 68 C 170 78,162 90,152 90 C 144 90,140 84,142 74 Z" fill="#ffd54a"/>
+        </g>
+      </svg>
+
+      <p class="hero__eyebrow">72時間の法則</p>
+
+      <h1 class="hero__title" id="hero-title">
+        思い立ったが<em>吉日</em><br>
+        導火線は、燃えている
+      </h1>
+
+      <p class="hero__sub">
+        やろうと思い立ったことを登録すると、72時間の導火線が燃え始める。<br>
+        着手できたら静かに消え、燃え尽きたら「不発弾」として残る。<br>
+        通知もアカウントも要らない。ただ、炎を見るだけ。
+      </p>
+
+      <div class="hero__actions">
+        <a href="./index.html" class="btn-primary" id="hero-cta-primary">🔥 今すぐ点火する</a>
+        <a href="#how-it-works" class="btn-ghost" id="hero-cta-secondary">使い方を見る</a>
+      </div>
+
+      <div class="scroll-indicator" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        スクロール
+      </div>
+    </section>
+
+    <!-- Quote -->
+    <section class="quote-section" aria-labelledby="quote-heading">
+      <h2 id="quote-heading" class="sr-only">コンセプト</h2>
+      <span class="quote-mark" aria-hidden="true">〝</span>
+      <blockquote>
+        思い立ったが吉日
+        <cite>— 日本のことわざ</cite>
+      </blockquote>
+    </section>
+
+    <!-- Problem -->
+    <section class="section" aria-labelledby="problem-heading">
+      <p class="section__label">問題</p>
+      <h2 class="section__title" id="problem-heading">
+        なぜ「やろう」は<br>消えてしまうのか
+      </h2>
+      <p class="section__body">
+        心理学の研究によると、何かをやろうと思い立った瞬間から72時間以内に着手しないと、実行率が激減します。先延ばしは悪意ではなく、「忘却」が原因です。
+      </p>
+      <div class="problem-grid">
+        <article class="problem-card fade-in">
+          <span class="problem-card__icon" aria-hidden="true">🌫️</span>
+          <h3 class="problem-card__title">思考の揮発</h3>
+          <p class="problem-card__desc">「あとでやろう」は「決してやらない」と等しい。72時間を過ぎると着手意欲は急速に薄れる。</p>
+        </article>
+        <article class="problem-card fade-in">
+          <span class="problem-card__icon" aria-hidden="true">🔔</span>
+          <h3 class="problem-card__title">通知疲れ</h3>
+          <p class="problem-card__desc">リマインダーは多すぎると無視される。「見たとき」に燃えている状態を見せるだけで十分。</p>
+        </article>
+        <article class="problem-card fade-in">
+          <span class="problem-card__icon" aria-hidden="true">📋</span>
+          <h3 class="problem-card__title">ToDoの肥大化</h3>
+          <p class="problem-card__desc">増え続けるリストは罪悪感を生む。燃え尽きた項目は「不発弾」として分類され、死蔵されない。</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="how-it-works" aria-labelledby="howto-heading">
+      <p class="section__label">使い方</p>
+      <h2 class="section__title" id="howto-heading">シンプルに、燃やす</h2>
+      <p class="section__body">操作は3つだけ。管理画面もカテゴリも優先度も存在しない。</p>
+      <ol class="steps" aria-label="使い方のステップ">
+        <li class="step fade-in">
+          <div class="step__num-col" aria-hidden="true">
+            <span class="step__num">01</span>
+            <span class="step__connector"></span>
+          </div>
+          <div class="step__content">
+            <h3 class="step__title">思い立ったことを書く</h3>
+            <p class="step__desc">テキストを入力して「点火する」を押すだけ。その瞬間から72時間のカウントダウンが始まる。タイトルは最大100文字。分類や期日の入力は不要。</p>
+          </div>
+        </li>
+        <li class="step fade-in">
+          <div class="step__num-col" aria-hidden="true">
+            <span class="step__num">02</span>
+            <span class="step__connector"></span>
+          </div>
+          <div class="step__content">
+            <h3 class="step__title">導火線が燃えていくのを見る</h3>
+            <p class="step__desc">アプリを開くたびに、燃え続ける導火線が残り時間を教える。通知は送らない。見るか見ないかは、あなた次第。</p>
+          </div>
+        </li>
+        <li class="step fade-in">
+          <div class="step__num-col" aria-hidden="true">
+            <span class="step__num">03</span>
+            <span class="step__connector"></span>
+          </div>
+          <div class="step__content">
+            <h3 class="step__title">着手したら「着手した」を押す</h3>
+            <p class="step__desc">着手した項目は履歴も記録も残さず、静かに消える。燃え尽きた場合は「不発弾」として保存され、再点火するか削除するかを選べる。</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Rules -->
+    <section class="section" aria-labelledby="rules-heading">
+      <p class="section__label">設計原則</p>
+      <h2 class="section__title" id="rules-heading">変えられないルール</h2>
+      <p class="section__body">緊張感こそがこのアプリの本体です。だから、例外を作らない。</p>
+      <ul class="rules-list">
+        <li class="rule-item fade-in">
+          <span class="rule-item__icon" aria-hidden="true">⏱️</span>
+          <div class="rule-item__text">
+            <strong>期限は72時間固定</strong>
+            延長も一時停止もできない。炎を止める手段は存在しない。
+          </div>
+        </li>
+        <li class="rule-item fade-in">
+          <span class="rule-item__icon" aria-hidden="true">🚫</span>
+          <div class="rule-item__text">
+            <strong>着手したら痕跡なし</strong>
+            着手した項目は記録・履歴を一切残さず消える。達成感より行動を優先する設計。
+          </div>
+        </li>
+        <li class="rule-item fade-in">
+          <span class="rule-item__icon" aria-hidden="true">💣</span>
+          <div class="rule-item__text">
+            <strong>燃え尽きた項目は不発弾</strong>
+            期限切れは失敗ではなく、保留状態。再点火するか削除するか、明示的に選ぶ。
+          </div>
+        </li>
+        <li class="rule-item fade-in">
+          <span class="rule-item__icon" aria-hidden="true">🔇</span>
+          <div class="rule-item__text">
+            <strong>通知しない</strong>
+            急かすのはアプリの仕事ではない。開いたときに燃えているものを見せるだけ。
+          </div>
+        </li>
+        <li class="rule-item fade-in">
+          <span class="rule-item__icon" aria-hidden="true">🔒</span>
+          <div class="rule-item__text">
+            <strong>アカウント不要・サーバーなし</strong>
+            データはすべて端末のlocalStorageに保存。登録もログインも不要。
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Features -->
+    <section class="section" aria-labelledby="features-heading">
+      <p class="section__label">特徴</p>
+      <h2 class="section__title" id="features-heading">余分なものは何もない</h2>
+      <div class="features-grid">
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">📱</span>
+          <p class="feature-chip__label">PWA対応</p>
+          <p class="feature-chip__note">ホーム画面に追加してネイティブ感覚で使用</p>
+        </div>
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">✈️</span>
+          <p class="feature-chip__label">オフライン動作</p>
+          <p class="feature-chip__note">ネット不要。いつでも開けば導火線が燃えている</p>
+        </div>
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">🎨</span>
+          <p class="feature-chip__label">ダークテーマ</p>
+          <p class="feature-chip__note">炎を引き立てる漆黒の背景</p>
+        </div>
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">⚡</span>
+          <p class="feature-chip__label">軽量・高速</p>
+          <p class="feature-chip__note">依存ライブラリなし。Vanilla JS のみ</p>
+        </div>
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">♿</span>
+          <p class="feature-chip__label">アクセシブル</p>
+          <p class="feature-chip__note">スクリーンリーダー・キーボード対応</p>
+        </div>
+        <div class="feature-chip fade-in">
+          <span class="feature-chip__icon" aria-hidden="true">🆓</span>
+          <p class="feature-chip__label">完全無料</p>
+          <p class="feature-chip__note">広告なし。課金なし。ただ燃やすだけ</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" aria-labelledby="cta-heading">
+      <div class="cta-72" aria-label="72時間">
+        <span class="cta-72__num">72</span>
+        <span class="cta-72__unit">時間</span>
+      </div>
+      <h2 class="cta-section__title" id="cta-heading">
+        あなたの導火線は、<br>まだ燃えている
+      </h2>
+      <p class="cta-section__sub">今この瞬間が、吉日です。</p>
+      <a href="./index.html" class="btn-primary" id="final-cta">🔥 今すぐ点火する</a>
+    </section>
+
+  </main>
+
+  <footer>
+    <nav aria-label="フッターナビゲーション">
+      <a href="./index.html">アプリを開く</a>
+      <a href="./about.html">このアプリについて</a>
+    </nav>
+    <p>© 2026 吉日タイマー — 思い立ったが吉日、72時間の法則</p>
+  </footer>
+
+  <script>
+    const fadeEls = document.querySelectorAll('.fade-in');
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+              const delay = (i % 4) * 80;
+              setTimeout(() => entry.target.classList.add('visible'), delay);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      );
+      fadeEls.forEach(el => observer.observe(el));
+    } else {
+      fadeEls.forEach(el => el.classList.add('visible'));
+    }
+  </script>
+</body>
+</html>
