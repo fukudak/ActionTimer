@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>吉日タイマー — Material Design 3 案</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --md-primary: #c9491f;
+    --md-on-primary: #ffffff;
+    --md-primary-container: #ffdbc8;
+    --md-on-primary-container: #3a0f00;
+    --md-surface: #fffbf8;
+    --md-surface-container-low: #f7ede7;
+    --md-surface-container: #f1e5de;
+    --md-on-surface: #221a15;
+    --md-on-surface-variant: #53433a;
+    --md-error: #ba1a1a;
+    --md-error-container: #ffdad6;
+    --md-on-error-container: #410002;
+    --md-tertiary-container: #f4e0b8;
+    --md-on-tertiary-container: #241a00;
+    --md-outline: #85736a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --md-primary: #ffb599;
+      --md-on-primary: #5e1900;
+      --md-primary-container: #832c07;
+      --md-on-primary-container: #ffdbc8;
+      --md-surface: #18120e;
+      --md-surface-container-low: #211913;
+      --md-surface-container: #261d17;
+      --md-on-surface: #ede0d9;
+      --md-on-surface-variant: #d8c2b7;
+      --md-error: #ffb4ab;
+      --md-error-container: #93000a;
+      --md-on-error-container: #ffdad6;
+      --md-tertiary-container: #554500;
+      --md-on-tertiary-container: #ffe08c;
+      --md-outline: #9f8d83;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Roboto", "Hiragino Sans", system-ui, sans-serif;
+    background: var(--md-surface);
+    color: var(--md-on-surface);
+    max-width: 480px;
+    margin-inline: auto;
+    padding-bottom: 32px;
+  }
+  .topbar {
+    padding: 20px 20px 12px;
+    text-align: center;
+  }
+  .topbar h1 { font-size: 1.5rem; font-weight: 500; margin: 0; letter-spacing: 0.02em; }
+  .topbar p { font-size: 0.8rem; color: var(--md-on-surface-variant); margin: 4px 0 0; }
+
+  .content { padding: 8px 20px 0; }
+
+  .field {
+    margin: 16px 0 8px;
+  }
+  .field label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: var(--md-on-surface-variant); }
+  .field input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--md-outline);
+    background: transparent;
+    color: var(--md-on-surface);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .field input:focus-visible { outline: 2px solid var(--md-primary); outline-offset: -1px; border-color: var(--md-primary); }
+
+  .fab-extended {
+    margin: 12px 0 28px;
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: 28px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 14px 24px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.15);
+  }
+  .fab-extended:active { transform: scale(0.98); }
+
+  h2.section-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 20px 0 12px;
+    color: var(--md-on-surface);
+  }
+
+  .card {
+    border-radius: 16px;
+    background: var(--md-surface-container-low);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card.urgent { background: var(--md-error-container); color: var(--md-on-error-container); }
+  .card-title { font-size: 1.05rem; font-weight: 500; margin: 0 0 10px; }
+
+  .burn-meter { height: 6px; border-radius: 3px; background: color-mix(in srgb, currentColor 18%, transparent); overflow: hidden; margin-bottom: 10px; }
+  .burn-meter > span { display: block; height: 100%; background: var(--md-primary); border-radius: 3px; }
+  .card.urgent .burn-meter > span { background: var(--md-error); }
+
+  .card-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .remaining { font-variant-numeric: tabular-nums; font-size: 0.85rem; font-weight: 500; }
+  .card.urgent .remaining { font-weight: 700; }
+
+  .btn-tonal {
+    min-height: 44px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .card.urgent .btn-tonal { background: var(--md-on-error-container); color: var(--md-error-container); }
+
+  .card-outlined {
+    border: 1px solid var(--md-outline);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 8px;
+    background: var(--md-tertiary-container);
+    color: var(--md-on-tertiary-container);
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .actions-outlined { display: flex; gap: 8px; }
+  .btn-outlined, .btn-text-error {
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    background: transparent;
+  }
+  .btn-outlined { border: 1px solid var(--md-outline); color: var(--md-on-surface); }
+  .btn-text-error { border: none; color: var(--md-error); }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>吉日タイマー</h1>
+    <p>思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+  </div>
+
+  <div class="content">
+    <div class="field">
+      <label for="m3-input">72時間以内に始めること</label>
+      <input id="m3-input" type="text" placeholder="思い立ったことを書く" />
+    </div>
+    <button class="fab-extended">点火する</button>
+
+    <h2 class="section-title">燃えている</h2>
+
+    <div class="card">
+      <p class="card-title">資料のドラフトを書き始める</p>
+      <div class="burn-meter"><span style="width:62%"></span></div>
+      <div class="card-row">
+        <span class="remaining">残り 27時間14分</span>
+        <button class="btn-tonal">着手した</button>
+      </div>
+    </div>
+
+    <div class="card urgent">
+      <p class="card-title">歯医者に電話する</p>
+      <div class="burn-meter"><span style="width:92%"></span></div>
+      <div class="card-row">
+        <span class="remaining">残り 1時間48分</span>
+        <button class="btn-tonal">着手した</button>
+      </div>
+    </div>
+
+    <h2 class="section-title">不発弾</h2>
+
+    <div class="card-outlined">
+      <div>
+        <span class="chip">不発弾</span>
+        <p class="card-title" style="margin:0;">本棚を整理する</p>
+      </div>
+      <div class="actions-outlined">
+        <button class="btn-outlined">再点火</button>
+        <button class="btn-text-error">削除</button>
+      </div>
+    </div>
+  </div>
+  <!-- ※ Web での近似実装。公式実装は Material Web Components を参照 -->
+</body>
+</html>

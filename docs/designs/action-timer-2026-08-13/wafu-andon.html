@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>吉日タイマー — 灯籠案(和風深化 方向A)</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #050403;
+    --card: #14100d;
+    --card-edge: #2e2119;
+    --text: #f3e9dc;
+    --text-dim: #a89a88;
+    --flame-1: #ffd54a;
+    --flame-2: #ff7b1c;
+    --accent: #c94a32;
+    --danger: #ff4d2e;
+    --ash: #6b5a4a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 480px;
+    margin-inline: auto;
+    padding: 0 0 32px;
+    position: relative;
+  }
+  /* 和紙ノイズ(feTurbulence)を背景に薄く重ねる */
+  .paper-noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    opacity: 0.05; mix-blend-mode: overlay;
+  }
+  .app { position: relative; z-index: 1; }
+
+  .header { padding: 24px 20px 14px; border-bottom: 1px solid #201812; }
+  .header h1 {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+    font-size: 1.7rem; letter-spacing: 0.15em; margin: 0; font-weight: 500;
+  }
+  .header p { font-size: 0.78rem; color: var(--text-dim); margin: 6px 0 0; letter-spacing: 0.04em; }
+
+  .content { padding: 0 20px; }
+
+  .field { margin: 20px 0 8px; }
+  .field label {
+    display: block; font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.9rem; margin-bottom: 8px; letter-spacing: 0.05em;
+  }
+  .field input {
+    width: 100%; padding: 13px 14px; border-radius: 10px;
+    border: 1px solid var(--card-edge); background: var(--card); color: var(--text);
+    font-size: 1rem; font-family: inherit;
+  }
+  .field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btn-ignite {
+    width: 100%; margin: 12px 0 30px; min-height: 48px; border: none; border-radius: 10px;
+    background: linear-gradient(180deg, #b8371f, #8f2414);
+    color: #fff8ee; font-weight: 700; font-size: 1rem; cursor: pointer;
+    box-shadow: 0 0 0 1px #4a1a0e inset, 0 4px 16px -4px rgba(201,74,50,0.5);
+  }
+  .btn-ignite:active { transform: scale(0.98); }
+
+  h2.section-title {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 1rem; font-weight: 500; margin: 24px 0 14px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2.section-title::before { content: ""; width: 2px; height: 1.2em; background: var(--accent); }
+
+  /* ===== 灯籠カード(常時内側から発光) ===== */
+  .andon {
+    position: relative;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--card-edge);
+    padding: 18px 18px 16px;
+    margin-bottom: 14px;
+    box-shadow:
+      0 0 24px -8px color-mix(in srgb, var(--flame-2) 35%, transparent) inset,
+      0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .andon.level-2 { box-shadow: 0 0 30px -6px color-mix(in srgb, var(--flame-2) 50%, transparent) inset; }
+  .andon.level-3 {
+    box-shadow: 0 0 36px -4px color-mix(in srgb, var(--danger) 65%, transparent) inset;
+    border-color: color-mix(in srgb, var(--danger) 40%, var(--card-edge));
+    animation: glow-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 36px -4px color-mix(in srgb, var(--danger) 65%, transparent) inset; }
+    50% { box-shadow: 0 0 46px -2px color-mix(in srgb, var(--danger) 85%, transparent) inset; }
+  }
+
+  .andon-title {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 1.08rem; font-weight: 500; margin: 0 0 12px;
+  }
+
+  /* 燃焼メーター: ジグザグの焦げ目 + 火花 */
+  .burn-track {
+    position: relative; height: 10px; border-radius: 5px; overflow: visible;
+    background: #241a13; margin-bottom: 12px;
+  }
+  .burn-fill {
+    position: absolute; inset: 0; border-radius: 5px;
+    background: linear-gradient(90deg, var(--flame-1), var(--flame-2));
+    clip-path: polygon(0 0, calc(100% - 3px) 0, 100% 20%, calc(100% - 4px) 40%, 100% 58%, calc(100% - 3px) 78%, 100% 100%, 0 100%);
+  }
+  .spark { position: absolute; top: -3px; width: 3px; height: 3px; border-radius: 50%; background: var(--flame-1); box-shadow: 0 0 4px 1px var(--flame-1); animation: spark-flicker 1.6s ease-in-out infinite; }
+  .spark:nth-child(2) { top: 6px; animation-delay: .5s; }
+  .spark:nth-child(3) { top: 1px; animation-delay: 1s; }
+  @keyframes spark-flicker { 0%,100% { opacity: .2; } 50% { opacity: 1; } }
+
+  .row-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .remaining { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; }
+  .andon.level-3 .remaining { color: var(--danger); }
+
+  .btn-start {
+    min-height: 44px; padding: 8px 18px; border: 1px solid var(--accent); border-radius: 8px;
+    background: transparent; color: var(--accent); font: inherit; font-weight: 500; font-size: 0.9rem; cursor: pointer;
+  }
+
+  /* ===== 不発弾: 消えた提灯 ===== */
+  .andon-out {
+    border-radius: 14px; background: #0c0a08; border: 1px solid #201812;
+    padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .andon-out .andon-title { color: var(--ash); }
+  .andon-out .andon-title::before { content: "灰 "; color: var(--ash); font-size: .8em; }
+  .out-actions { display: flex; gap: 8px; }
+  .btn-reignite, .btn-delete {
+    min-height: 40px; padding: 7px 14px; border: 1px solid var(--ash); border-radius: 8px;
+    background: transparent; color: var(--ash); font: inherit; font-size: 0.82rem; cursor: pointer;
+  }
+  .btn-delete { border-color: var(--danger); color: #c95d4a; }
+</style>
+</head>
+<body>
+  <svg class="paper-noise" aria-hidden="true">
+    <filter id="washi"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter>
+    <rect width="100%" height="100%" filter="url(#washi)"/>
+  </svg>
+
+  <div class="app">
+    <div class="header">
+      <h1>吉日タイマー</h1>
+      <p>思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+    </div>
+
+    <div class="content">
+      <div class="field">
+        <label for="andon-input">72時間以内に始めること</label>
+        <input id="andon-input" type="text" placeholder="思い立ったことを書く" />
+      </div>
+      <button class="btn-ignite">点火する</button>
+
+      <h2 class="section-title">燃えている</h2>
+
+      <div class="andon level-1">
+        <p class="andon-title">資料のドラフトを書き始める</p>
+        <div class="burn-track"><div class="burn-fill" style="width:62%"></div></div>
+        <div class="row-footer">
+          <span class="remaining">残り 27時間14分</span>
+          <button class="btn-start">着手した</button>
+        </div>
+      </div>
+
+      <div class="andon level-3">
+        <p class="andon-title">歯医者に電話する</p>
+        <div class="burn-track">
+          <div class="burn-fill" style="width:92%"></div>
+          <span class="spark" style="left:90%"></span>
+          <span class="spark" style="left:93%"></span>
+          <span class="spark" style="left:88%"></span>
+        </div>
+        <div class="row-footer">
+          <span class="remaining">残り 1時間48分</span>
+          <button class="btn-start">着手した</button>
+        </div>
+      </div>
+
+      <h2 class="section-title">不発弾</h2>
+
+      <div class="andon-out">
+        <p class="andon-title">本棚を整理する</p>
+        <div class="out-actions">
+          <button class="btn-reignite">再点火</button>
+          <button class="btn-delete">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ※ 既存 style.css の世界観を前提とした深化案(方向A: 灯籠)。汎用デザインシステムへの準拠は意図していない -->
+</body>
+</html>
