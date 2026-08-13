@@ -1,6 +1,6 @@
 {
   "name": "吉日タイマー",
-  "short_name": "吉日",
+  "short_name": "吉日タイマー",
   "description": "思い立ったが吉日。72時間で燃え尽きる導火線が着手を促すタイマー。",
   "lang": "ja",
   "start_url": "./",
