@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>吉日タイマー — 線香花火案(和風深化 方向B)</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0a09;
+    --card: #171310;
+    --card-edge: #2a2019;
+    --text: #f3e9dc;
+    --text-dim: #948676;
+    --paper: #d7c9a8;
+    --flame-1: #ffd54a;
+    --flame-2: #ff7b1c;
+    --danger: #ff4d2e;
+    --ash: #6b5a4a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 480px;
+    margin-inline: auto;
+    padding-bottom: 32px;
+  }
+
+  .header { padding: 26px 20px 16px; border-bottom: 1px solid #1c1611; }
+  .header h1 {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+    font-size: 1.7rem; letter-spacing: 0.18em; margin: 0; font-weight: 500;
+  }
+  .header p { font-size: 0.76rem; color: var(--text-dim); margin: 6px 0 0; letter-spacing: 0.04em; }
+
+  .content { padding: 0 20px; }
+
+  .field { margin: 22px 0 8px; }
+  .field label {
+    display: block; font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.9rem; margin-bottom: 8px; color: var(--text-dim); letter-spacing: 0.05em;
+  }
+  .field input {
+    width: 100%; padding: 13px 14px; border-radius: 2px;
+    border: 1px solid var(--card-edge); background: transparent; color: var(--text);
+    font-size: 1rem; font-family: inherit;
+  }
+  .field input:focus-visible { outline: 1px solid var(--paper); outline-offset: 2px; }
+
+  /* 平常時: モノトーン(墨×生成り) */
+  .btn-ignite {
+    width: 100%; margin: 14px 0 34px; min-height: 46px; border: 1px solid var(--paper); border-radius: 2px;
+    background: transparent; color: var(--paper); font-weight: 600; font-size: 0.95rem; letter-spacing: 0.08em;
+    cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+  }
+  .btn-ignite:hover, .btn-ignite:focus-visible {
+    background: linear-gradient(180deg, #b8371f, #8f2414); color: #fff8ee; border-color: transparent;
+  }
+
+  h2.section-title {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 0.98rem; font-weight: 500; margin: 26px 0 16px; color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== 平常時カード: モノトーン、余白広め、罫線細め ===== */
+  .row {
+    border-top: 1px solid var(--card-edge);
+    padding: 16px 2px 18px;
+  }
+  .row:last-of-type { border-bottom: 1px solid var(--card-edge); }
+  .row-title {
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 1.05rem; font-weight: 500; margin: 0 0 12px; color: var(--text);
+  }
+
+  /* 玉(線香花火)メーター: ドット表現、時間経過で縮小・減光 */
+  .dama-meter { display: flex; gap: 5px; align-items: center; margin-bottom: 12px; }
+  .dama { width: 9px; height: 9px; border-radius: 50%; background: var(--paper); opacity: 0.85; }
+  .dama.spent { opacity: 0.15; width: 6px; height: 6px; }
+
+  .row-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .remaining { font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--text-dim); }
+  .btn-start {
+    min-height: 40px; padding: 7px 16px; border: 1px solid var(--card-edge); border-radius: 2px;
+    background: transparent; color: var(--text-dim); font: inherit; font-size: 0.85rem; cursor: pointer;
+  }
+
+  /* ===== 緊急時: 静→動の切り替え。ここでだけ炎色と火花を爆発的に使う ===== */
+  .row.urgent {
+    position: relative;
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--card-edge));
+    background: radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--danger) 10%, transparent), transparent 60%);
+  }
+  .row.urgent .row-title { color: #fff2e8; }
+  .row.urgent .dama { background: var(--flame-1); box-shadow: 0 0 6px 1px var(--flame-2); animation: dama-crackle 1.4s ease-in-out infinite; }
+  .row.urgent .dama:nth-child(2) { animation-delay: .2s; }
+  .row.urgent .dama:nth-child(3) { animation-delay: .4s; }
+  .row.urgent .dama:nth-child(4) { animation-delay: .6s; }
+  @keyframes dama-crackle { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.35); opacity: 1; } }
+  .row.urgent .remaining { color: var(--danger); font-weight: 700; }
+  .row.urgent .btn-start { border-color: var(--danger); color: var(--danger); }
+
+  /* ===== 不発弾 ===== */
+  .row-out {
+    border-top: 1px solid var(--card-edge);
+    padding: 14px 2px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .row-out:last-of-type { border-bottom: 1px solid var(--card-edge); }
+  .row-out .row-title { color: var(--ash); font-size: 0.98rem; margin: 0; }
+  .row-out .row-title::before { content: "灰 "; font-size: .8em; }
+  .out-actions { display: flex; gap: 8px; }
+  .btn-reignite, .btn-delete {
+    min-height: 40px; padding: 7px 14px; border: 1px solid var(--ash); border-radius: 2px;
+    background: transparent; color: var(--ash); font: inherit; font-size: 0.8rem; cursor: pointer;
+  }
+  .btn-delete { border-color: #7a3d33; color: #b06152; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>吉日タイマー</h1>
+    <p>思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+  </div>
+
+  <div class="content">
+    <div class="field">
+      <label for="senko-input">72時間以内に始めること</label>
+      <input id="senko-input" type="text" placeholder="思い立ったことを書く" />
+    </div>
+    <button class="btn-ignite">点火する</button>
+
+    <h2 class="section-title">燃えている</h2>
+
+    <div class="row">
+      <p class="row-title">資料のドラフトを書き始める</p>
+      <div class="dama-meter">
+        <span class="dama"></span><span class="dama"></span><span class="dama"></span>
+        <span class="dama spent"></span><span class="dama spent"></span>
+      </div>
+      <div class="row-footer">
+        <span class="remaining">残り 27時間14分</span>
+        <button class="btn-start">着手した</button>
+      </div>
+    </div>
+
+    <div class="row urgent">
+      <p class="row-title">歯医者に電話する</p>
+      <div class="dama-meter">
+        <span class="dama" style="width:6px;height:6px;"></span>
+        <span class="dama spent"></span><span class="dama spent"></span><span class="dama spent"></span><span class="dama spent"></span>
+      </div>
+      <div class="row-footer">
+        <span class="remaining">残り 1時間48分</span>
+        <button class="btn-start">着手した</button>
+      </div>
+    </div>
+
+    <h2 class="section-title">不発弾</h2>
+
+    <div class="row-out">
+      <p class="row-title">本棚を整理する</p>
+      <div class="out-actions">
+        <button class="btn-reignite">再点火</button>
+        <button class="btn-delete">削除</button>
+      </div>
+    </div>
+  </div>
+  <!-- ※ 既存 style.css の世界観を前提とした深化案(方向B: 線香花火)。汎用デザインシステムへの準拠は意図していない -->
+</body>
+</html>
