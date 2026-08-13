@@ -41,6 +41,8 @@
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+  .build-version { text-align: center; font-size: 0.7rem; color: var(--ink-dim); opacity: 0.6; padding: 28px 20px 0; }
+
   /* ラベルは非表示(sr-only)。入力欄と点火ボタンを1行にまとめる */
   .field-row { display: flex; gap: 8px; margin: 20px 0 28px; }
   .field-row input {
@@ -141,6 +143,14 @@
     font-size: 0.98rem; font-weight: 700;
   }
 
+  /* 編集中のインライン入力。タイトル/灰タイトルどちらの文脈でも自然になじむよう継承で揃える */
+  .inline-edit-input {
+    flex: 1; min-width: 0; width: 100%;
+    border: none; border-bottom: 1px dashed currentColor;
+    background: transparent; color: inherit; font: inherit; text-shadow: inherit;
+    padding: 0; outline: none;
+  }
+
   /* 2行目のキャプション。ボタンの有無や文字数に関わらず note の右端(=焦げの右端)には影響しない */
   .fuse-remaining {
     flex-basis: 100%;
@@ -179,21 +189,72 @@
     font-size: 0.98rem; font-weight: 600;
     color: var(--ash);
   }
-  .spent-title::before { content: "灰 "; font-size: .82em; }
   .btn-reignite {
     min-height: 34px; padding: 5px 12px; border: 1px solid var(--ash); border-radius: 16px;
     background: transparent; color: var(--ash); font: inherit; font-size: 0.76rem; cursor: pointer;
     flex-shrink: 0;
   }
+
+  /* ===== 今/履歴の画面切り替え(右上アイコン) ===== */
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .icon-btn {
+    flex-shrink: 0; width: 40px; height: 40px; margin-top: 2px;
+    border: 1px solid var(--row-edge); border-radius: 50%;
+    background: var(--bg-elevated); color: var(--ink-dim);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--flame-2); color: var(--flame-3); }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .empty-note { color: var(--ink-dim); font-size: 0.85rem; text-align: center; padding: 24px 12px; }
+
+  /* ===== 履歴画面 ===== */
+  .history-summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin: 4px 0 16px; padding: 14px 16px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--row-edge);
+  }
+  .stat-group { display: flex; gap: 28px; }
+  .stat-label { font-size: 0.75rem; color: var(--ink-dim); }
+  .stat-value { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .btn-clear-history {
+    flex-shrink: 0; min-height: 36px; padding: 6px 14px; border: 1px solid var(--danger); border-radius: 16px;
+    background: transparent; color: var(--danger); font: inherit; font-size: 0.78rem; cursor: pointer;
+  }
+  .history-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px;
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--row-edge); margin-bottom: 8px;
+  }
+  .history-title {
+    flex: 1; min-width: 0; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-meta { flex-basis: 100%; font-size: 0.76rem; color: var(--ink-dim); }
+
+  .history-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; }
+  .history-pagination .page-btn {
+    min-height: 36px; padding: 6px 16px; border: 1px solid var(--row-edge); border-radius: 16px;
+    background: var(--bg-elevated); color: var(--ink); font: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  }
+  .history-pagination .page-btn:disabled { opacity: 0.4; cursor: default; }
+  .history-pagination .page-label { font-size: 0.8rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
   <div class="header">
-    <h1>吉日タイマー</h1>
-    <p>思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+    <div class="header-row">
+      <div>
+        <h1>吉日タイマー</h1>
+        <p>思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
+      </div>
+      <button class="icon-btn" id="history-toggle" aria-label="履歴を見る"></button>
+    </div>
   </div>
 
   <div class="content">
+  <div id="view-now" class="view active">
     <div class="field-row">
       <label class="sr-only" for="bright-input">72時間以内に始めること</label>
       <input id="bright-input" type="text" placeholder="思い立ったことを書く" />
@@ -250,7 +311,7 @@
       </div>
     </div>
 
-    <h2 class="section-title">不発弾</h2>
+    <h2 class="section-title">燃え尽きた</h2>
 
     <div class="swipe-cell">
       <div class="swipe-actions">
@@ -265,10 +326,33 @@
       </div>
     </div>
   </div>
+
+  <div id="view-history" class="view">
+    <div class="history-summary">
+      <div class="stat-group">
+        <div class="stat">
+          <div class="stat-label">平均着手時間</div>
+          <div class="stat-value" id="history-average">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">着手率</div>
+          <div class="stat-value" id="history-rate">—</div>
+        </div>
+      </div>
+      <button class="btn-clear-history" id="history-clear">履歴をクリア</button>
+    </div>
+    <div id="history-list"></div>
+    <p id="history-empty" class="empty-note">まだ着手した履歴はありません。</p>
+    <div id="history-pagination" class="history-pagination"></div>
+  </div>
+  </div>
+
+  <footer class="build-version">ver.1.0.0</footer>
   <!-- ※ 一行=1タスクの燃焼演出(明色パレット)。汎用デザインシステムへの準拠は意図していない -->
   <script>
-    // 横スライドで編集・削除を出す(ポインターイベントでマウス/タッチ両対応)
-    document.querySelectorAll(".swipe-cell").forEach((cell) => {
+    // 横スライドで編集・削除を出す(ポインターイベントでマウス/タッチ両対応)。
+    // 再点火で行を動的に追加するため、初期化は関数化していつでも呼べるようにする。
+    function initSwipeCell(cell) {
       const content = cell.querySelector(".swipe-content");
       const actions = cell.querySelector(".swipe-actions");
       let startX = 0;
@@ -292,7 +376,12 @@
         });
       }
 
+      // 編集ボタンから呼べるように、閉じる処理をセルに持たせておく
+      cell.closeSwipe = () => setX(0, true);
+
       content.addEventListener("pointerdown", (e) => {
+        // ボタン上の押下はスワイプ扱いにしない(preventDefaultするとclickが握りつぶされるため)
+        if (e.target.closest("button, input, a")) return;
         dragging = true;
         startX = e.clientX;
         originX = currentX;
@@ -319,7 +408,308 @@
       content.addEventListener("pointerup", endDrag);
       content.addEventListener("pointercancel", endDrag);
       content.addEventListener("dragstart", (e) => e.preventDefault());
+    }
+    document.querySelectorAll(".swipe-cell").forEach(initSwipeCell);
+
+    // 編集: タイトルをその場でテキスト入力に差し替える
+    function startEdit(cell) {
+      const titleEl = cell.querySelector(".fuse-title, .spent-title");
+      if (!titleEl || titleEl.querySelector("input")) return;
+      cell.closeSwipe && cell.closeSwipe();
+
+      const original = titleEl.textContent;
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "inline-edit-input";
+      input.value = original;
+      titleEl.textContent = "";
+      titleEl.appendChild(input);
+      input.focus();
+      input.select();
+
+      let done = false;
+      function commit() {
+        if (done) return;
+        done = true;
+        const next = input.value.trim();
+        titleEl.textContent = next || original;
+      }
+      input.addEventListener("blur", commit);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") input.blur();
+        if (e.key === "Escape") { titleEl.textContent = original; done = true; input.remove(); }
+      });
+    }
+
+    // 削除: 行そのものをアニメーションしてから取り除く
+    function deleteRow(cell) {
+      cell.style.transition = "opacity .2s ease, transform .2s ease, margin-bottom .2s ease, max-height .2s ease";
+      cell.style.maxHeight = cell.getBoundingClientRect().height + "px";
+      requestAnimationFrame(() => {
+        cell.style.opacity = "0";
+        cell.style.transform = "scale(0.97)";
+        cell.style.maxHeight = "0px";
+        cell.style.marginBottom = "0px";
+      });
+      cell.addEventListener("transitionend", () => {
+        cell.remove();
+        renderHistory(); // 件数が変わるので、着手率の分母を最新の表示件数に合わせ直す
+      }, { once: true });
+    }
+
+    // 燃焼中の行(swipe-cell)を組み立てる。--burn:0% = 点火直後、残り72時間
+    function createBurningCell(title) {
+      const cell = document.createElement("div");
+      cell.className = "swipe-cell";
+      cell.innerHTML =
+        '<div class="swipe-actions">' +
+        '<button class="swipe-btn swipe-edit">編集</button>' +
+        '<button class="swipe-btn swipe-delete">削除</button>' +
+        "</div>" +
+        '<div class="swipe-content">' +
+        '<div class="fuse-row">' +
+        '<div class="fuse-note" style="--burn: 0%"><span class="fuse-title"></span></div>' +
+        '<span class="fuse-remaining">残り 72時間</span>' +
+        '<button class="fuse-action">着手</button>' +
+        "</div></div>";
+      cell.querySelector(".fuse-title").textContent = title;
+      return cell;
+    }
+
+    // 再点火: 不発弾の行を削除し、同じ文言で「思い立った」に残り72時間で復活させる
+    function reignite(cell) {
+      const titleEl = cell.querySelector(".spent-title");
+      const title = titleEl ? titleEl.textContent : "";
+      const unexplodedHeading = Array.from(document.querySelectorAll("h2.section-title"))
+        .find((h) => h.textContent === "燃え尽きた");
+      const newCell = createBurningCell(title);
+      if (unexplodedHeading) {
+        unexplodedHeading.parentNode.insertBefore(newCell, unexplodedHeading);
+      } else {
+        cell.parentNode.insertBefore(newCell, cell);
+      }
+      initSwipeCell(newCell);
+      newCell.style.opacity = "0";
+      requestAnimationFrame(() => {
+        newCell.style.transition = "opacity .3s ease";
+        newCell.style.opacity = "1";
+      });
+      deleteRow(cell);
+      sortBurningList();
+      renderHistory();
+    }
+
+    // ===== 履歴 =====
+    const history = [];
+
+    // 指定した見出し(思い立った/燃え尽きた)直下に並ぶ swipe-cell の件数を数える
+    function countSectionItems(sectionTitle) {
+      const heading = Array.from(document.querySelectorAll("h2.section-title"))
+        .find((h) => h.textContent === sectionTitle);
+      if (!heading) return 0;
+      let count = 0;
+      let el = heading.nextElementSibling;
+      while (el && el.classList.contains("swipe-cell")) {
+        count += 1;
+        el = el.nextElementSibling;
+      }
+      return count;
+    }
+
+    // 「思い立った」を残り時間が少ない順(緊急なもの優先)に並べ替える
+    function sortBurningList() {
+      const heading = Array.from(document.querySelectorAll("h2.section-title"))
+        .find((h) => h.textContent === "思い立った");
+      if (!heading) return;
+      const cells = [];
+      let el = heading.nextElementSibling;
+      while (el && el.classList.contains("swipe-cell")) {
+        cells.push(el);
+        el = el.nextElementSibling;
+      }
+      const boundary = el; // 「燃え尽きた」見出し。動かさない固定の挿入先アンカー
+      cells.sort((a, b) =>
+        parseRemainingMinutes(a.querySelector(".fuse-remaining").textContent) -
+        parseRemainingMinutes(b.querySelector(".fuse-remaining").textContent)
+      );
+      cells.forEach((cell) => heading.parentNode.insertBefore(cell, boundary));
+    }
+
+    // "残り 27時間14分" のような表記から分数を取り出す
+    function parseRemainingMinutes(text) {
+      const h = text.match(/(\d+)\s*時間/);
+      const m = text.match(/(\d+)\s*分/);
+      return (h ? parseInt(h[1], 10) : 0) * 60 + (m ? parseInt(m[1], 10) : 0);
+    }
+    function formatMinutes(total) {
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return m ? `${h}時間${m}分` : `${h}時間`;
+    }
+    function formatTimestamp(d) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    // 着手: 72時間のうちどれだけ経過した時点で着手したかを履歴に積む
+    const HISTORY_PAGE_SIZE = 10;
+    let historyPage = 1;
+
+    function recordHandled(title, remainingText) {
+      const remainingMinutes = parseRemainingMinutes(remainingText);
+      const elapsedMinutes = Math.max(0, 72 * 60 - remainingMinutes);
+      history.unshift({ title, remainingText, elapsedMinutes, at: new Date() });
+      historyPage = 1; // 新しい記録は1ページ目に来るので先頭へ戻す
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("history-list");
+      const empty = document.getElementById("history-empty");
+      const avgEl = document.getElementById("history-average");
+      const rateEl = document.getElementById("history-rate");
+      const pagination = document.getElementById("history-pagination");
+      list.innerHTML = "";
+      pagination.innerHTML = "";
+
+      // 着手率 = 着手件数(履歴) / (思い立った件数 + 燃え尽きた件数)
+      const denom = countSectionItems("思い立った") + countSectionItems("燃え尽きた");
+      rateEl.textContent = denom > 0
+        ? `${history.length}/${denom}(${Math.round((history.length / denom) * 100)}%)`
+        : "—";
+
+      if (history.length === 0) {
+        empty.hidden = false;
+        avgEl.textContent = "—";
+        return;
+      }
+      empty.hidden = true;
+
+      const avgMinutes = Math.round(
+        history.reduce((sum, h) => sum + h.elapsedMinutes, 0) / history.length
+      );
+      avgEl.textContent = formatMinutes(avgMinutes);
+
+      // ページング: 件数が増えたら HISTORY_PAGE_SIZE 件ずつに区切る
+      const totalPages = Math.max(1, Math.ceil(history.length / HISTORY_PAGE_SIZE));
+      historyPage = Math.min(Math.max(1, historyPage), totalPages);
+      const start = (historyPage - 1) * HISTORY_PAGE_SIZE;
+      const pageItems = history.slice(start, start + HISTORY_PAGE_SIZE);
+
+      pageItems.forEach((h) => {
+        const row = document.createElement("div");
+        row.className = "history-row";
+        const title = document.createElement("span");
+        title.className = "history-title";
+        title.textContent = h.title;
+        const meta = document.createElement("span");
+        meta.className = "history-meta";
+        meta.textContent = `${h.remainingText}で着手・${formatTimestamp(h.at)}`;
+        row.appendChild(title);
+        row.appendChild(meta);
+        list.appendChild(row);
+      });
+
+      if (totalPages > 1) {
+        const prev = document.createElement("button");
+        prev.className = "page-btn";
+        prev.textContent = "前へ";
+        prev.disabled = historyPage <= 1;
+        prev.addEventListener("click", () => { historyPage -= 1; renderHistory(); });
+
+        const label = document.createElement("span");
+        label.className = "page-label";
+        label.textContent = `${historyPage} / ${totalPages}`;
+
+        const next = document.createElement("button");
+        next.className = "page-btn";
+        next.textContent = "次へ";
+        next.disabled = historyPage >= totalPages;
+        next.addEventListener("click", () => { historyPage += 1; renderHistory(); });
+
+        pagination.appendChild(prev);
+        pagination.appendChild(label);
+        pagination.appendChild(next);
+      }
+    }
+
+    document.getElementById("history-clear").addEventListener("click", () => {
+      history.length = 0;
+      historyPage = 1;
+      renderHistory();
     });
+
+    // 今/履歴の切り替え(右上アイコン1つで行き来する)
+    const ICON_HISTORY =
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
+    const ICON_BACK =
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+
+    const historyToggle = document.getElementById("history-toggle");
+    historyToggle.innerHTML = ICON_HISTORY;
+
+    function showView(name) {
+      const isHistory = name === "history";
+      document.getElementById("view-now").classList.toggle("active", !isHistory);
+      document.getElementById("view-history").classList.toggle("active", isHistory);
+      historyToggle.innerHTML = isHistory ? ICON_BACK : ICON_HISTORY;
+      historyToggle.setAttribute("aria-label", isHistory ? "今に戻る" : "履歴を見る");
+    }
+
+    historyToggle.addEventListener("click", () => {
+      const isHistory = document.getElementById("view-history").classList.contains("active");
+      showView(isHistory ? "now" : "history");
+    });
+
+    // クリックはイベント委任にして、再点火・着手で後から増減する行にも自動対応させる
+    document.addEventListener("click", (e) => {
+      const editBtn = e.target.closest(".swipe-edit");
+      if (editBtn) { startEdit(editBtn.closest(".swipe-cell")); return; }
+
+      const deleteBtn = e.target.closest(".swipe-delete");
+      if (deleteBtn) { deleteRow(deleteBtn.closest(".swipe-cell")); return; }
+
+      const reigniteBtn = e.target.closest(".btn-reignite");
+      if (reigniteBtn) { reignite(reigniteBtn.closest(".swipe-cell")); return; }
+
+      const startBtn = e.target.closest(".fuse-action");
+      if (startBtn) {
+        const cell = startBtn.closest(".swipe-cell");
+        const titleEl = cell.querySelector(".fuse-title");
+        const remainingEl = cell.querySelector(".fuse-remaining");
+        recordHandled(titleEl ? titleEl.textContent : "", remainingEl ? remainingEl.textContent : "");
+        deleteRow(cell);
+        return;
+      }
+
+      const igniteBtn = e.target.closest(".btn-ignite");
+      if (igniteBtn) {
+        const input = document.getElementById("bright-input");
+        const title = input.value.trim();
+        if (!title) { input.focus(); return; }
+        const newCell = createBurningCell(title);
+        const unexplodedHeading = Array.from(document.querySelectorAll("h2.section-title"))
+          .find((h) => h.textContent === "燃え尽きた");
+        if (unexplodedHeading) {
+          unexplodedHeading.parentNode.insertBefore(newCell, unexplodedHeading);
+        } else {
+          document.getElementById("view-now").appendChild(newCell);
+        }
+        initSwipeCell(newCell);
+        newCell.style.opacity = "0";
+        requestAnimationFrame(() => {
+          newCell.style.transition = "opacity .3s ease";
+          newCell.style.opacity = "1";
+        });
+        input.value = "";
+        sortBurningList();
+        renderHistory();
+        return;
+      }
+    });
+
+    sortBurningList();
+    renderHistory();
   </script>
 </body>
 </html>
