@@ -454,6 +454,21 @@
       cell.addEventListener("transitionend", () => cell.remove(), { once: true });
     }
 
+    // 見出し(思い立った/燃え尽きた)のテキストからその <h2> 要素を探す
+    function findHeading(sectionTitle) {
+      return Array.from(document.querySelectorAll("h2.section-title"))
+        .find((h) => h.textContent === sectionTitle);
+    }
+
+    // 要素をフェードインさせながら表示する(点火・再点火の新規行に使う)
+    function fadeIn(el) {
+      el.style.opacity = "0";
+      requestAnimationFrame(() => {
+        el.style.transition = "opacity .3s ease";
+        el.style.opacity = "1";
+      });
+    }
+
     // 燃焼中の行(swipe-cell)を組み立てる。--burn:0% = 点火直後、残り72時間
     function createBurningCell(title) {
       const cell = document.createElement("div");
@@ -473,53 +488,35 @@
       return cell;
     }
 
-    // 再点火: 不発弾の行を削除し、同じ文言で「思い立った」に残り72時間で復活させる
-    function reignite(cell) {
-      const titleEl = cell.querySelector(".spent-title");
-      const title = titleEl ? titleEl.textContent : "";
-      const unexplodedHeading = Array.from(document.querySelectorAll("h2.section-title"))
-        .find((h) => h.textContent === "燃え尽きた");
+    // 「思い立った」に残り72時間の新しい行を1件登録する(点火・再点火の共通処理)
+    function registerBurningTask(title) {
+      const unexplodedHeading = findHeading("燃え尽きた");
       const newCell = createBurningCell(title);
       if (unexplodedHeading) {
         unexplodedHeading.parentNode.insertBefore(newCell, unexplodedHeading);
       } else {
-        cell.parentNode.insertBefore(newCell, cell);
+        document.getElementById("view-now").appendChild(newCell);
       }
       initSwipeCell(newCell);
-      newCell.style.opacity = "0";
-      requestAnimationFrame(() => {
-        newCell.style.transition = "opacity .3s ease";
-        newCell.style.opacity = "1";
-      });
-      deleteRow(cell);
+      fadeIn(newCell);
       sortBurningList();
-      totalRegistered += 1; // 再点火も新規登録として数える
+      totalRegistered += 1;
       renderHistory();
+    }
+
+    // 再点火: 不発弾の行を削除し、同じ文言で「思い立った」に残り72時間で復活させる
+    function reignite(cell) {
+      const titleEl = cell.querySelector(".spent-title");
+      registerBurningTask(titleEl ? titleEl.textContent : "");
+      deleteRow(cell);
     }
 
     // ===== 履歴 =====
     const history = [];
     // 累計登録数(点火+再点火の合計)。初期表示の思い立った3件+不発弾1件をすでに登録済みとして数える
     let totalRegistered = 4;
-
-    // 「思い立った」を残り時間が少ない順(緊急なもの優先)に並べ替える
-    function sortBurningList() {
-      const heading = Array.from(document.querySelectorAll("h2.section-title"))
-        .find((h) => h.textContent === "思い立った");
-      if (!heading) return;
-      const cells = [];
-      let el = heading.nextElementSibling;
-      while (el && el.classList.contains("swipe-cell")) {
-        cells.push(el);
-        el = el.nextElementSibling;
-      }
-      const boundary = el; // 「燃え尽きた」見出し。動かさない固定の挿入先アンカー
-      cells.sort((a, b) =>
-        parseRemainingMinutes(a.querySelector(".fuse-remaining").textContent) -
-        parseRemainingMinutes(b.querySelector(".fuse-remaining").textContent)
-      );
-      cells.forEach((cell) => heading.parentNode.insertBefore(cell, boundary));
-    }
+    const HISTORY_PAGE_SIZE = 10;
+    let historyPage = 1;
 
     // "残り 27時間14分" のような表記から分数を取り出す
     function parseRemainingMinutes(text) {
@@ -537,10 +534,25 @@
       return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    // 着手: 72時間のうちどれだけ経過した時点で着手したかを履歴に積む
-    const HISTORY_PAGE_SIZE = 10;
-    let historyPage = 1;
+    // 「思い立った」を残り時間が少ない順(緊急なもの優先)に並べ替える
+    function sortBurningList() {
+      const heading = findHeading("思い立った");
+      if (!heading) return;
+      const cells = [];
+      let el = heading.nextElementSibling;
+      while (el && el.classList.contains("swipe-cell")) {
+        cells.push(el);
+        el = el.nextElementSibling;
+      }
+      const boundary = el; // 「燃え尽きた」見出し。動かさない固定の挿入先アンカー
+      cells.sort((a, b) =>
+        parseRemainingMinutes(a.querySelector(".fuse-remaining").textContent) -
+        parseRemainingMinutes(b.querySelector(".fuse-remaining").textContent)
+      );
+      cells.forEach((cell) => heading.parentNode.insertBefore(cell, boundary));
+    }
 
+    // 着手: 72時間のうちどれだけ経過した時点で着手したかを履歴に積む
     function recordHandled(title, remainingText) {
       const remainingMinutes = parseRemainingMinutes(remainingText);
       const elapsedMinutes = Math.max(0, 72 * 60 - remainingMinutes);
@@ -672,24 +684,8 @@
         const input = document.getElementById("bright-input");
         const title = input.value.trim();
         if (!title) { input.focus(); return; }
-        const newCell = createBurningCell(title);
-        const unexplodedHeading = Array.from(document.querySelectorAll("h2.section-title"))
-          .find((h) => h.textContent === "燃え尽きた");
-        if (unexplodedHeading) {
-          unexplodedHeading.parentNode.insertBefore(newCell, unexplodedHeading);
-        } else {
-          document.getElementById("view-now").appendChild(newCell);
-        }
-        initSwipeCell(newCell);
-        newCell.style.opacity = "0";
-        requestAnimationFrame(() => {
-          newCell.style.transition = "opacity .3s ease";
-          newCell.style.opacity = "1";
-        });
+        registerBurningTask(title);
         input.value = "";
-        sortBurningList();
-        totalRegistered += 1;
-        renderHistory();
         return;
       }
     });
