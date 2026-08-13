@@ -451,10 +451,7 @@
         cell.style.maxHeight = "0px";
         cell.style.marginBottom = "0px";
       });
-      cell.addEventListener("transitionend", () => {
-        cell.remove();
-        renderHistory(); // 件数が変わるので、着手率の分母を最新の表示件数に合わせ直す
-      }, { once: true });
+      cell.addEventListener("transitionend", () => cell.remove(), { once: true });
     }
 
     // 燃焼中の行(swipe-cell)を組み立てる。--burn:0% = 点火直後、残り72時間
@@ -496,25 +493,14 @@
       });
       deleteRow(cell);
       sortBurningList();
+      totalRegistered += 1; // 再点火も新規登録として数える
       renderHistory();
     }
 
     // ===== 履歴 =====
     const history = [];
-
-    // 指定した見出し(思い立った/燃え尽きた)直下に並ぶ swipe-cell の件数を数える
-    function countSectionItems(sectionTitle) {
-      const heading = Array.from(document.querySelectorAll("h2.section-title"))
-        .find((h) => h.textContent === sectionTitle);
-      if (!heading) return 0;
-      let count = 0;
-      let el = heading.nextElementSibling;
-      while (el && el.classList.contains("swipe-cell")) {
-        count += 1;
-        el = el.nextElementSibling;
-      }
-      return count;
-    }
+    // 累計登録数(点火+再点火の合計)。初期表示の思い立った3件+不発弾1件をすでに登録済みとして数える
+    let totalRegistered = 4;
 
     // 「思い立った」を残り時間が少ない順(緊急なもの優先)に並べ替える
     function sortBurningList() {
@@ -572,10 +558,9 @@
       list.innerHTML = "";
       pagination.innerHTML = "";
 
-      // 着手率 = 着手件数(履歴) / (思い立った件数 + 燃え尽きた件数)
-      const denom = countSectionItems("思い立った") + countSectionItems("燃え尽きた");
-      rateEl.textContent = denom > 0
-        ? `${history.length}/${denom}(${Math.round((history.length / denom) * 100)}%)`
+      // 着手率 = 着手件数(履歴) / 累計登録数(点火+再点火の合計)
+      rateEl.textContent = totalRegistered > 0
+        ? `${history.length}/${totalRegistered}(${Math.round((history.length / totalRegistered) * 100)}%)`
         : "—";
 
       if (history.length === 0) {
@@ -703,6 +688,7 @@
         });
         input.value = "";
         sortBurningList();
+        totalRegistered += 1;
         renderHistory();
         return;
       }
