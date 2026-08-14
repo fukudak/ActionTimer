@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0a09">
+  <meta name="description" content="思い立ったが吉日。72時間で燃え尽きる導火線が、先延ばしがちな「思い立ったこと」への着手を促すタイマーPWA。">
+  <title>吉日タイマーについて</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .lp-hero {
+      padding: 48px 0 40px;
+      text-align: center;
+    }
+    .lp-hero h1 {
+      font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      letter-spacing: 0.15em;
+      margin: 0 0 12px;
+      font-weight: 500;
+    }
+    .lp-hero .lp-lead {
+      font-size: 1rem;
+      color: var(--text-dim);
+      max-width: 32em;
+      margin: 0 auto 28px;
+      line-height: 1.9;
+    }
+    .lp-cta {
+      display: inline-block;
+      min-height: 48px;
+      padding: 12px 32px;
+      border-radius: 10px;
+      background: #a72f23;
+      color: #fff8ee;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      line-height: 24px;
+    }
+    @media (hover: hover) {
+      .lp-cta:hover { box-shadow: 0 0 0 2px var(--accent); }
+    }
+    .lp-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .lp-section { margin: 48px 0; }
+    .lp-section h2 {
+      font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin: 0 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lp-section h2::before {
+      content: "";
+      width: 3px;
+      height: 1.2em;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .lp-section p { color: var(--text-dim); line-height: 1.9; }
+
+    .lp-steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .lp-steps li {
+      background: var(--card);
+      border: 1px solid var(--card-edge);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: baseline;
+    }
+    .lp-steps .lp-step-num {
+      font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--accent);
+      flex-shrink: 0;
+      min-width: 1.4em;
+    }
+    .lp-steps .lp-step-body p {
+      margin: 4px 0 0;
+      font-size: 0.88rem;
+    }
+    .lp-steps strong { font-weight: 500; }
+
+    .lp-principles {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    @media screen and (min-width: 560px) {
+      .lp-principles { grid-template-columns: 1fr 1fr; }
+    }
+    .lp-principles li {
+      background: #161616;
+      border: 1px solid #444;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .lp-principles h3 {
+      font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+      font-size: 0.98rem;
+      font-weight: 500;
+      margin: 0 0 8px;
+      color: #f5f0e8;
+    }
+    .lp-principles p { margin: 0; font-size: 0.85rem; }
+
+    .lp-footer {
+      text-align: center;
+      padding: 24px 0 8px;
+      border-top: 1px solid #2a2a2a;
+      margin-top: 56px;
+    }
+    .lp-footer a { color: var(--accent); }
+    .lp-footer p { color: var(--text-dim); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="lp-hero">
+      <h1>吉日タイマー</h1>
+      <p class="lp-lead">
+        「思い立ったが吉日」— 72時間の法則。<br>
+        やろうと思い立ったことは、72時間以内に着手しないと実行率が激減する。<br>
+        先延ばしを「燃えていく導火線」として見せるだけの、シンプルなタイマー。
+      </p>
+      <a class="lp-cta" href="index.html">アプリを開く</a>
+    </section>
+
+    <section class="lp-section">
+      <h2>通知では急かさない</h2>
+      <p>
+        プッシュ通知は送りません。アプリを開いたときに、燃えている導火線が目に入る。それだけで着手を後押しします。
+        急かされるのではなく、自分のタイミングで確認する。静かに緊張感だけを可視化するアプリです。
+      </p>
+    </section>
+
+    <section class="lp-section">
+      <h2>使い方</h2>
+      <ul class="lp-steps">
+        <li>
+          <span class="lp-step-num">1</span>
+          <div class="lp-step-body">
+            <strong>思い立ったことを登録する</strong>
+            <p>72時間以内に始めたいことを一言で書いて点火するだけ。</p>
+          </div>
+        </li>
+        <li>
+          <span class="lp-step-num">2</span>
+          <div class="lp-step-body">
+            <strong>72時間の導火線が燃え始める</strong>
+            <p>登録した時刻から72時間固定。延長も一時停止もできません。</p>
+          </div>
+        </li>
+        <li>
+          <span class="lp-step-num">3</span>
+          <div class="lp-step-body">
+            <strong>着手すれば消え、燃え尽きれば不発弾に</strong>
+            <p>着手できた項目は履歴を残さず消えます。着手できず燃え尽きた項目は「不発弾」として残り、再点火するか削除できます。</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="lp-section">
+      <h2>設計思想</h2>
+      <ul class="lp-principles">
+        <li>
+          <h3>期限は72時間固定</h3>
+          <p>延長・一時停止はできません。この緊張感がアプリの本体です。</p>
+        </li>
+        <li>
+          <h3>再点火は仕切り直し</h3>
+          <p>不発弾を再点火すると、元の期限は延長せず新しい72時間が始まります。</p>
+        </li>
+        <li>
+          <h3>サーバーなし・アカウント不要</h3>
+          <p>データはすべて端末内(localStorage)に保存されます。登録も不要です。</p>
+        </li>
+        <li>
+          <h3>PWAとしてホーム画面に</h3>
+          <p>ブラウザから開いてホーム画面に追加すれば、オフラインでも使えます。</p>
+        </li>
+      </ul>
+    </section>
+
+    <div style="text-align:center; margin: 40px 0;">
+      <a class="lp-cta" href="index.html">吉日タイマーを開く</a>
+    </div>
+
+    <footer class="lp-footer">
+      <p><a href="index.html">吉日タイマーに戻る</a></p>
+    </footer>
+  </main>
+</body>
+</html>
