@@ -5,9 +5,9 @@
   --ink: #29251f;
   --muted: #746b5f;
   --line: #d9cdbb;
-  --flame: #e4572e;
+  --flame: #b6402b;
   --flame-light: #ffb52e;
-  --ash: #8c8479;
+  --ash: #625b52;
   --danger: #b9362c;
   font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
   color: var(--ink);
@@ -56,6 +56,7 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .status-badge--unexploded { color:var(--ash); }
 .unexploded-actions { display:flex; gap:7px; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
+.save-error { margin: 0 0 18px; padding: 12px 14px; border: 2px solid var(--danger); border-radius: 10px; background: #fff1ed; color: var(--danger); font-weight: 700; }
 .burn-out { animation:burnout 1.6s ease-in forwards; }
 @keyframes burnout { to { opacity:0; transform:translateY(8px); filter:grayscale(1); } }
 @media screen and (min-width: 320px) { .add-form { grid-template-columns:minmax(0,1fr) auto; } }
