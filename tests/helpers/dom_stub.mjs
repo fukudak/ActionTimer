@@ -159,17 +159,21 @@ function createDocument() {
   for (const id of [
     "burning-list",
     "unexploded-list",
+    "history-list",
     "burning-empty",
     "unexploded-empty",
+    "history-empty",
+    "history-summary",
     "burning-heading",
     "unexploded-heading",
+    "history-heading",
     "save-error",
     "add-form",
     "add-input",
     "ui-status",
   ]) {
     ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
-    if (id === "burning-heading" || id === "unexploded-heading") ids[id].setAttribute("tabindex", "-1");
+    if (id === "burning-heading" || id === "unexploded-heading" || id === "history-heading") ids[id].setAttribute("tabindex", "-1");
   }
 
   // 実DOM同様、appendChild自体はクリックを発火しない。
@@ -280,6 +284,10 @@ export function loadApp(options = {}) {
 
     unexplodedCards() {
       return doc._ids["unexploded-list"].children;
+    },
+
+    historyCards() {
+      return doc._ids["history-list"].children;
     },
   };
 }

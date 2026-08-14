@@ -15,7 +15,7 @@ function storage(data) {
   return s;
 }
 
-test("start_immediately_removes_without_history", () => {
+test("start_immediately_removes_and_records_history", () => {
   const app = loadApp({ now: T0 });
   app.submitAdd("歯医者を予約する");
   const card = pending(app);
@@ -23,6 +23,10 @@ test("start_immediately_removes_without_history", () => {
   assert.equal(app.readStorage().pending.length, 0);
   assert.equal(app.readStorage().unexploded.length, 0);
   assert.equal(app.unexplodedCards().length, 0);
+  assert.equal(app.readStorage().history.length, 1);
+  assert.equal(app.readStorage().history[0].title, "歯医者を予約する");
+  assert.equal(app.readStorage().history[0].startedAt, T0);
+  assert.equal(app.historyCards().length, 1);
   assert.equal(app.doc._ids["ui-status"].textContent, "「歯医者を予約する」を着手しました。");
 });
 
@@ -49,7 +53,7 @@ test("start_at_or_after_deadline_moves_to_unexploded", () => {
 test("reignite_preserves_identity_and_resets_deadline", () => {
   const app = loadApp({ now: T0 + 5000, storage: storage({ pending: [], unexploded: [{ id: "u1", title: "再挑戦", createdAt: T0, failedAt: T0 + LIMIT_MS }] }) });
   app.unexplodedCards()[0].querySelector(".btn-reignite").dispatch("click");
-  assert.deepEqual(app.readStorage(), { pending: [{ id: "u1", title: "再挑戦", createdAt: T0 + 5000 }], unexploded: [] });
+  assert.deepEqual(app.readStorage(), { pending: [{ id: "u1", title: "再挑戦", createdAt: T0 + 5000 }], unexploded: [], history: [] });
   assert.equal(app.doc._ids["ui-status"].textContent, "「再挑戦」を再点火しました。新しい72時間が始まります。");
 });
 

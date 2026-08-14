@@ -26,9 +26,15 @@
       <p id="burning-empty" class="empty-note" hidden>まだ火はありません。思い立ったことを記すと、72時間の導火線が動き始めます。</p>
     </section>
     <section id="unexploded-section" class="list-section list-section--unexploded" aria-labelledby="unexploded-heading">
-      <h2 id="unexploded-heading" tabindex="-1">不発弾</h2>
+      <h2 id="unexploded-heading" tabindex="-1">燃え尽きた</h2>
       <ul id="unexploded-list" class="card-list"></ul>
-      <p id="unexploded-empty" class="empty-note" hidden>不発弾はありません。燃え尽きた項目はここに残ります。</p>
+      <p id="unexploded-empty" class="empty-note" hidden>燃え尽きた項目はありません。着手できなかった項目はここに残ります。</p>
+    </section>
+    <section id="history-section" class="list-section list-section--history" aria-labelledby="history-heading">
+      <h2 id="history-heading" tabindex="-1">履歴</h2>
+      <p id="history-summary" class="history-summary" hidden></p>
+      <ul id="history-list" class="card-list"></ul>
+      <p id="history-empty" class="empty-note" hidden>まだ着手した履歴はありません。</p>
     </section>
   </main>
   <script src="app.js"></script>

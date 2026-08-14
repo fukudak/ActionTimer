@@ -61,6 +61,9 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .status-badge--unexploded { color:var(--ash); }
 .unexploded-actions { display:flex; gap:7px; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
+.history-summary { margin:0 0 12px; color:var(--muted); font-size:.82rem; }
+.history-row__title { margin:0; }
+.history-row__meta { margin:5px 0 0; color:var(--muted); font-size:.78rem; }
 .save-error { margin: 0 0 18px; padding: 12px 14px; border: 2px solid var(--danger); border-radius: 10px; background: #fff1ed; color: var(--danger); font-weight: 700; }
 .burn-out { animation:burnout 1.6s ease-in forwards; }
 @keyframes burnout { to { opacity:0; transform:translateY(8px); filter:grayscale(1); } }

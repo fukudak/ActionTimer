@@ -19,13 +19,23 @@ test("production shell promotes the bright one-line Japanese UI", () => {
   assert.match(css, /prefers-reduced-motion/);
 });
 
-test("production files exclude mock-only product features", () => {
+test("production files exclude mock-only editing and navigation features", () => {
+  // 着手履歴・平均着手時間・着手率は本番採用済み(→ docs/design.md「着手履歴と着手率の採用」)。
+  // ここではモック固有だった編集・並び替え・複数ページ切替のみ引き続き除外する。
   for (const file of ["index.html", "style.css", "app.js"]) {
     const source = read(file);
-    for (const token of ["totalRegistered", "completionRate", "averageTime", "pending-delete", "view-switch", "sort-button"]) {
+    for (const token of ["inline-edit", "pending-delete", "view-switch", "sort-button", "swipe-action"]) {
       assert.equal(source.includes(token), false, `${file}: ${token}`);
     }
   }
+});
+
+test("history feature is present with title, elapsed time, and rate", () => {
+  const html = read("index.html");
+  const app = read("app.js");
+  assert.match(html, /<h2 id="history-heading" tabindex="-1">履歴<\/h2>/);
+  assert.match(app, /state\.history\.unshift/);
+  assert.match(app, /着手率/);
 });
 
 test("about page describes the light Japanese presentation", () => {

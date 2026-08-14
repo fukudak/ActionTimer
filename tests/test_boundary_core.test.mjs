@@ -29,7 +29,7 @@ test("expired_pending_is_normalized_before_render_and_persisted", () => {
 
 test("legacy_started_is_discarded", () => {
   const app = loadApp({ now: T0, storage: storage({ pending: [], started: [{ id: "s", title: "旧", createdAt: T0, startedAt: T0, actions: [] }] }) });
-  assert.deepEqual(app.readStorage(), { pending: [], unexploded: [] });
+  assert.deepEqual(app.readStorage(), { pending: [], unexploded: [], history: [] });
   assert.equal(app.readStorage().started, undefined);
 });
 
@@ -38,12 +38,12 @@ test("legacy_top_level_actions_and_extra_keys_are_discarded", () => {
     now: T0,
     storage: storage({ pending: [], unexploded: [], actions: [{ text: "旧" }], extra: true }),
   });
-  assert.deepEqual(app.readStorage(), { pending: [], unexploded: [] });
+  assert.deepEqual(app.readStorage(), { pending: [], unexploded: [], history: [] });
 });
 
 test("invalid_dates_and_duplicate_ids_are_removed", () => {
   const app = loadApp({ now: T0, storage: storage({ pending: [{ id: "same", title: "pending", createdAt: T0 }, { id: "bad", title: "bad", createdAt: Number.MAX_VALUE }], unexploded: [{ id: "same", title: "duplicate", createdAt: T0, failedAt: T0 }, { id: "ok", title: "valid", createdAt: T0, failedAt: Number.MAX_VALUE }] }) });
-  assert.deepEqual(app.readStorage(), { pending: [{ id: "same", title: "pending", createdAt: T0 }], unexploded: [] });
+  assert.deepEqual(app.readStorage(), { pending: [{ id: "same", title: "pending", createdAt: T0 }], unexploded: [], history: [] });
 });
 
 test("unexploded_failed_at_is_canonicalized_to_fixed_72h", () => {

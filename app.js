@@ -12,7 +12,7 @@ let state = loadState();
 const burningOut = new Set();
 let tickTimerId = 0;
 
-function emptyState() { return { pending: [], unexploded: [] }; }
+function emptyState() { return { pending: [], unexploded: [], history: [] }; }
 function isValidTimestamp(value) { return Number.isFinite(value) && !Number.isNaN(new Date(value).getTime()); }
 function hasSafeDeadline(createdAt) { return isValidTimestamp(createdAt) && isValidTimestamp(createdAt + LIMIT_MS); }
 function sanitizeItems(list, kind) {
@@ -20,6 +20,7 @@ function sanitizeItems(list, kind) {
   return list.filter((it) => {
     if (!it || typeof it.id !== "string" || typeof it.title !== "string" || !hasSafeDeadline(it.createdAt)) return false;
     if (kind === "unexploded") return isValidTimestamp(it.failedAt);
+    if (kind === "history") return isValidTimestamp(it.startedAt) && it.startedAt >= it.createdAt;
     return true;
   });
 }
@@ -45,6 +46,12 @@ function normalize(data, now = Date.now()) {
     });
     ids.add(item.id);
   }
+  const historyIds = new Set();
+  for (const item of sanitizeItems(data?.history, "history")) {
+    if (historyIds.has(item.id)) continue;
+    result.history.push({ id: item.id, title: item.title, createdAt: item.createdAt, startedAt: item.startedAt });
+    historyIds.add(item.id);
+  }
   return result;
 }
 function loadState() {
@@ -60,9 +67,10 @@ function loadState() {
     const canonicalSource = {
       pending: data.pending ?? [],
       unexploded: data.unexploded ?? [],
+      history: data.history ?? [],
     };
     if (
-      Object.keys(data).some((key) => key !== "pending" && key !== "unexploded") ||
+      Object.keys(data).some((key) => key !== "pending" && key !== "unexploded" && key !== "history") ||
       JSON.stringify(normalized) !== JSON.stringify(canonicalSource)
     ) {
       needsPersist = true;
@@ -95,11 +103,12 @@ function startItem(id) {
     state.pending.splice(index, 1);
     state.unexploded.push({ ...item, failedAt: item.createdAt + LIMIT_MS });
     saveState(); render();
-    uiStatusEl.textContent = `「${item.title}」は燃え尽き、不発弾になりました。`;
+    uiStatusEl.textContent = `「${item.title}」は燃え尽きました。`;
     focusHeading(unexplodedHeading);
     return;
   }
   state.pending.splice(index, 1);
+  state.history.unshift({ id: crypto.randomUUID(), title: item.title, createdAt: item.createdAt, startedAt: Date.now() });
   saveState(); render();
   uiStatusEl.textContent = `「${item.title}」を着手しました。`;
   focusHeading(burningHeading);
@@ -110,7 +119,7 @@ function expireItem(id) {
   const item = state.pending.splice(index, 1)[0];
   state.unexploded.push({ ...item, failedAt: item.createdAt + LIMIT_MS });
   burningOut.delete(id); saveState(); render();
-  uiStatusEl.textContent = `「${item.title}」は燃え尽き、不発弾になりました。`;
+  uiStatusEl.textContent = `「${item.title}」は燃え尽きました。`;
 }
 function reigniteItem(id) {
   const index = state.unexploded.findIndex((it) => it.id === id);
@@ -134,8 +143,11 @@ function deleteUnexploded(id) {
 
 const burningList = document.getElementById("burning-list");
 const unexplodedList = document.getElementById("unexploded-list");
+const historyList = document.getElementById("history-list");
 const burningEmpty = document.getElementById("burning-empty");
 const unexplodedEmpty = document.getElementById("unexploded-empty");
+const historyEmpty = document.getElementById("history-empty");
+const historySummaryEl = document.getElementById("history-summary");
 const burningHeading = document.getElementById("burning-heading");
 const unexplodedHeading = document.getElementById("unexploded-heading");
 const saveErrorEl = document.getElementById("save-error");
@@ -143,8 +155,9 @@ const uiStatusEl = document.getElementById("ui-status");
 if (needsPersist) saveState();
 function focusHeading(el) { el?.focus?.(); }
 function formatRemaining(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; const s = Math.floor((ms % MS_PER_MINUTE) / 1000); if (h > 0) return `残り ${h}時間${m}分`; if (m > 0) return `残り ${m}分${s}秒`; return `残り ${s}秒`; }
+function formatDuration(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; if (h > 0) return m > 0 ? `${h}時間${m}分` : `${h}時間`; return `${m}分`; }
 function formatDateTime(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
-function render() { renderBurning(); renderUnexploded(); }
+function render() { renderBurning(); renderUnexploded(); renderHistory(); }
 function renderBurning() {
   burningList.textContent = "";
   for (const item of state.pending) {
@@ -187,12 +200,32 @@ function renderUnexploded() {
     const li = document.createElement("li"); li.className = "card task-row task-row--unexploded unexploded"; li.dataset.id = item.id; li.tabIndex = -1;
     const note = document.createElement("div"); note.className = "unexploded-note"; const title = document.createElement("p"); title.className = "unexploded-note__title card-title"; title.textContent = item.title; note.appendChild(title);
     const meta = document.createElement("p"); meta.className = "unexploded-meta card-meta"; meta.textContent = `${formatDateTime(item.failedAt)} に燃え尽き`;
-    const badge = document.createElement("span"); badge.className = "status-badge status-badge--unexploded"; badge.textContent = "不発弾"; meta.appendChild(badge);
+    const badge = document.createElement("span"); badge.className = "status-badge status-badge--unexploded"; badge.textContent = "燃え尽きた"; meta.appendChild(badge);
     const actions = document.createElement("div"); actions.className = "unexploded-actions";
     const reignite = document.createElement("button"); reignite.type = "button"; reignite.className = "btn-reignite"; reignite.textContent = "再点火"; reignite.setAttribute("aria-label", `「${item.title}」を再点火する`); reignite.addEventListener("click", () => reigniteItem(item.id));
     const del = document.createElement("button"); del.type = "button"; del.className = "btn-delete"; del.textContent = "削除"; del.setAttribute("aria-label", `「${item.title}」を削除する`); del.addEventListener("click", () => deleteUnexploded(item.id)); actions.append(reignite, del); li.append(note, meta, actions); unexplodedList.appendChild(li);
   }
   unexplodedEmpty.hidden = state.unexploded.length > 0;
+}
+function renderHistory() {
+  historyList.textContent = "";
+  for (const item of state.history) {
+    const li = document.createElement("li"); li.className = "card history-row"; li.dataset.id = item.id; li.tabIndex = -1;
+    const title = document.createElement("p"); title.className = "card-title history-row__title"; title.textContent = item.title;
+    const meta = document.createElement("p"); meta.className = "card-meta history-row__meta";
+    meta.textContent = `${formatDateTime(item.startedAt)} 着手・点火から${formatDuration(item.startedAt - item.createdAt)}`;
+    li.append(title, meta); historyList.appendChild(li);
+  }
+  historyEmpty.hidden = state.history.length > 0;
+  const resolvedCount = state.history.length + state.unexploded.length;
+  if (state.history.length === 0 || resolvedCount === 0) {
+    historySummaryEl.hidden = true;
+    return;
+  }
+  const avgMs = state.history.reduce((sum, it) => sum + (it.startedAt - it.createdAt), 0) / state.history.length;
+  const rate = Math.round((state.history.length / resolvedCount) * 100);
+  historySummaryEl.hidden = false;
+  historySummaryEl.textContent = `平均着手時間 ${formatDuration(avgMs)}・着手率 ${state.history.length}/${resolvedCount}(${rate}%)`;
 }
 
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
