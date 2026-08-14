@@ -14,6 +14,7 @@
       --card:         #fffaf0;
       --card-edge:    #d9cdbb;
       --text:         #29251f;
+      --text-accent:  #7a2e1d;
       --text-dim:     #746b5f;
       --text-muted:   #625b52;
       --accent:       #b6402b;
@@ -110,7 +111,7 @@
     }
     .hero__eyebrow {
       position: relative; z-index: 1;
-      font-size: 0.78rem; letter-spacing: 0.2em; color: var(--flame-2);
+      font-size: 0.78rem; letter-spacing: 0.2em; color: var(--text-accent);
       text-transform: uppercase; margin-bottom: 16px;
       display: flex; align-items: center; justify-content: center; gap: 10px;
     }
@@ -181,7 +182,7 @@
     }
     .section + .section { border-top: 1px solid rgba(255,255,255,0.05); }
     .section__label {
-      font-size: 0.72rem; letter-spacing: 0.22em; color: var(--flame-2);
+      font-size: 0.72rem; letter-spacing: 0.22em; color: var(--text-accent);
       text-transform: uppercase; margin-bottom: 12px;
       display: flex; align-items: center; gap: 10px;
     }
@@ -222,7 +223,7 @@
       width: 48px; height: 48px; border-radius: 50%;
       background: var(--card); border: 1px solid var(--card-edge);
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--flame-2);
+      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--text-accent);
       flex-shrink: 0; z-index: 1;
     }
     .step__connector {
