@@ -40,13 +40,13 @@ test("backup UI and implementation are fully removed", () => {
   assert.match(app, /kichijitsu-timer-v1/);
 });
 
-test("service worker cache version is bumped without changing assets", () => {
+test("service worker cache version and assets include the LP", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v10";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v12";/);
   const block = sw.match(/const ASSETS = \[([\s\S]*?)\];/)?.[1] ?? "";
   const assets = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(assets, [
-    "./", "./index.html", "./style.css", "./app.js", "./manifest.webmanifest",
+    "./", "./index.html", "./about.html", "./style.css", "./app.js", "./manifest.webmanifest",
     "./icons/icon.svg", "./icons/icon-512.png", "./icons/apple-touch-icon.png",
   ]);
 });

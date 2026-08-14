@@ -35,7 +35,7 @@ https://kichijitsu-timer.fukudz-5dc.workers.dev
 | Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` |
 
-`dist/` は gitignore のため、Builds では `npm run build` で配信物を組み立ててから `wrangler deploy` する。
+`dist/` は gitignore のため、Builds では `npm run build` で配信物を組み立ててから `wrangler deploy` する。ビルドはLPの `about.html` もコピーする。
 Worker 名は `wrangler.toml` の `name`(`kichijitsu-timer`)と一致させること。
 
 ### 手動デプロイ(ローカル)
@@ -74,6 +74,7 @@ npm run deploy
 ### チェックリスト(PRレビュー等で使用)
 - [ ] 新規ファイルを `ASSETS` に追加したか
 - [ ] `CACHE_VERSION` を前回と異なる値に変更したか
+- [ ] `dist/about.html` がソースと一致するか
 - [ ] `BURNOUT_ANIM_MS` 等アプリ定数の変更と無関係にバージョンを上げていないか
 
 ### 却下した代替案

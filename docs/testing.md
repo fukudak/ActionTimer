@@ -57,10 +57,14 @@ node --test "tests/*.test.mjs"
 | `tests/test_removal_contract.test.mjs` | 撤去対象のUI・関数・Service Workerバージョンの静的契約 |
 | `tests/test_regression_core.test.mjs` | 旧仕様撤去後も維持する入力・日時・大量描画・安全性の回帰網 |
 | `tests/helpers/dom_stub.mjs` | DOM / localStorage / タイマーの偽物を与える共通スタブ |
+| `tests/test_ui_contract.test.mjs` | 明色一行UI、アクセシブルな進行度名、モック機能の混入防止 |
+| `tests/test_deployment_contract.test.mjs` | isolated build、LPコピー、静的アセット、Wrangler配信ディレクトリ |
 
 ---
 
-## 手動検証手順
+### 手動検証手順
+
+配信物の確認は `npm run build` 後に `dist/about.html` が存在し、`cmp about.html dist/about.html` が成功することを確認する。Wranglerは `wrangler.toml` の `./dist` を配信する。
 
 自動テストでは再現できない、実ブラウザ・実機でしか確認できない項目をまとめる。
 

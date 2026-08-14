@@ -1,11 +1,12 @@
 "use strict";
 
 // 更新時は必ずバージョンを上げること(CLAUDE.md Failure Modes 参照)
-const CACHE_VERSION = "kichijitsu-v11";
+const CACHE_VERSION = "kichijitsu-v12";
 
 const ASSETS = [
   "./",
   "./index.html",
+  "./about.html",
   "./style.css",
   "./app.js",
   "./manifest.webmanifest",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0a09">
+  <meta name="theme-color" content="#fffaf0">
   <title>吉日タイマー</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -11,43 +11,26 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-main">
-      <h1>吉日タイマー</h1>
-      <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
-    </div>
-  </header>
-
+  <header class="app-header"><h1>吉日タイマー</h1><p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p></header>
   <main>
     <p id="ui-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
-    <!-- 保存失敗時の通知バナー -->
     <p id="save-error" class="save-error" role="alert" aria-live="assertive" hidden></p>
-
-    <!-- 登録フォーム -->
     <form id="add-form" class="add-form" autocomplete="off">
-      <label for="add-input">72時間以内に始めること</label>
-      <input id="add-input" type="text" maxlength="100"
-             placeholder="思い立ったことを書く" required>
-      <button type="submit" class="btn-ignite">点火する</button>
+      <label for="add-input" class="sr-only">72時間以内に始めること</label>
+      <input id="add-input" type="text" maxlength="100" placeholder="思い立ったことを書く" autocomplete="off" required>
+      <button type="submit" class="btn-ignite">点火</button>
     </form>
-
-    <!-- 燃えているリスト -->
     <section class="list-section" aria-labelledby="burning-heading">
       <h2 id="burning-heading" tabindex="-1">燃えている</h2>
       <ul id="burning-list" class="card-list"></ul>
-      <p id="burning-empty" class="empty-note" hidden>
-        まだ火はありません。思い立ったことを記すと、72時間の導火線が動き始めます。
-      </p>
+      <p id="burning-empty" class="empty-note" hidden>まだ火はありません。思い立ったことを記すと、72時間の導火線が動き始めます。</p>
     </section>
-
-    <!-- 不発弾リスト -->
     <section id="unexploded-section" class="list-section list-section--unexploded" aria-labelledby="unexploded-heading">
       <h2 id="unexploded-heading" tabindex="-1">不発弾</h2>
       <ul id="unexploded-list" class="card-list"></ul>
       <p id="unexploded-empty" class="empty-note" hidden>不発弾はありません。燃え尽きた項目はここに残ります。</p>
     </section>
   </main>
-
   <script src="app.js"></script>
 </body>
 </html>

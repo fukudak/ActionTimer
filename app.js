@@ -155,7 +155,7 @@ function renderBurning() {
     const surface = document.createElement("div"); surface.className = "sticky-note__surface"; surface.setAttribute("aria-hidden", "true");
     const front = document.createElement("div"); front.className = "sticky-note__burn-front"; front.setAttribute("aria-hidden", "true");
     const title = document.createElement("p"); title.className = "sticky-note__title card-title"; title.textContent = item.title; sticky.append(ash, surface, front, title);
-    const progress = document.createElement("progress"); progress.className = "burn-meter"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", "燃焼進行度"); note.append(sticky, progress);
+    const progress = document.createElement("progress"); progress.className = "burn-meter"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`); note.append(sticky, progress);
     const meta = document.createElement("div"); meta.className = "task-row__meta card-meta";
     const badge = document.createElement("span"); badge.className = "status-badge"; const badgeText = document.createElement("span"); badgeText.className = "status-badge__text"; badgeText.textContent = "燃焼中"; badge.append(badgeText);
     const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(badge, remaining, ignited);
@@ -173,7 +173,7 @@ function tick() {
     li.querySelector(".remaining").textContent = remaining > 0 ? formatRemaining(remaining) : "燃え尽きました";
     li.querySelector(".remaining").classList.toggle("urgent", remaining > 0 && remaining < URGENT_THRESHOLD_MS);
     li.querySelector(".status-badge__text").textContent = remaining > 0 ? (remaining < URGENT_THRESHOLD_MS ? "期限間近" : "燃焼中") : "燃え尽きました";
-    li.querySelector(".burn-meter").value = progress; li.style.setProperty("--burn-progress", String(progress)); li.style.setProperty("--burn-edge", `${(1 - (remaining <= 0 ? 1 : progress * 0.6)) * 100}%`); li.classList.toggle("is-expired", remaining <= 0);
+    li.querySelector(".burn-meter").value = progress; li.style.setProperty("--burn-progress", String(progress)); li.style.setProperty("--burn-edge", `${(1 - progress) * 100}%`); li.classList.toggle("is-expired", remaining <= 0);
     if (remaining <= 0 && !burningOut.has(li.dataset.id)) { burningOut.add(li.dataset.id); li.classList.add("burn-out"); li.querySelector(".btn-start")?.setAttribute("disabled", "true"); setTimeout(() => expireItem(li.dataset.id), BURNOUT_ANIM_MS); }
   }
 }

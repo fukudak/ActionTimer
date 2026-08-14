@@ -17,7 +17,13 @@
 - 再点火は元の期限を延長せず、操作時刻から **新しい72時間** を開始する。
 - 旧 `started` / `actions` データは読み込み時に破棄し、保存形式は `{ pending, unexploded }` に正規化する。
 - データはすべて localStorage(キー: `kichijitsu-timer-v1`)。サーバーなし、アカウントなし。
-- 依存ライブラリなし(Vanilla JS)。ビルド工程なし。
+- 実行時は依存なしのVanilla JS。配信前に `npm run build` で静的ファイルを `dist/` にコピーする。
+
+## Presentation boundary
+
+- 本番UIは `docs/designs/action-timer-2026-08-13/wafu-bright-oneline.html` の明るい和風配色、480px幅、1行入力を採用する。
+- モックにある履歴、完了率、編集、並べ替え、表示切替、スワイプ操作は製品機能ではない。
+- LPの `about.html` は `npm run build` で `dist/` にコピーされ、Service Workerのプリキャッシュ対象になる。
 
 ## Known Debt
 

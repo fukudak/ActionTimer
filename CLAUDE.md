@@ -17,7 +17,7 @@
 - 再点火は元の期限を延長せず、操作時刻から **新しい72時間** を開始する。
 - 旧 `started` / `actions` データは読み込み時に破棄し、保存形式は `{ pending, unexploded }` に正規化する。
 - データはすべて localStorage(キー: `kichijitsu-timer-v1`)。サーバーなし、アカウントなし。
-- 依存ライブラリなし(Vanilla JS)。ビルド工程なし。
+- 依存ライブラリなし(Vanilla JS)。実行時のビルドは不要だが、配信時は `npm run build` で `dist/` に静的コピーする。
 
 ## Known Debt
 
