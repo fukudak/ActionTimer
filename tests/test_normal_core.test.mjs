@@ -76,7 +76,6 @@ test("unknown_ids_are_safe_noops", () => {
   app.ctx.reigniteItem("missing");
   app.ctx.deleteUnexploded("missing");
   app.ctx.deletePending("missing");
-  app.ctx.editItemTitle("missing", "pending", "無視される");
   assert.equal(app.readStorage(), null);
 });
 
@@ -93,17 +92,14 @@ test("pending_delete_cancel_and_confirm", () => {
   assert.equal(app.doc._ids["ui-status"].textContent, "「消す候補」を削除しました。");
 });
 
-test("swipe_edit_updates_pending_title", () => {
+test("swipe_actions_are_delete_only", () => {
   const app = loadApp({
     now: T0,
     storage: storage({ pending: [{ id: "p1", title: "旧タイトル", createdAt: T0 }], unexploded: [{ id: "u1", title: "旧不発弾", createdAt: T0, failedAt: T0 }] }),
   });
   const pendingCard = pending(app, "p1");
-  pendingCard.querySelector(".swipe-edit").dispatch("click");
-  const pendingInput = pendingCard.querySelector(".fuse-title").querySelector("input");
-  pendingInput.value = "新タイトル";
-  pendingInput.dispatch("blur");
-  assert.equal(app.readStorage().pending[0].title, "新タイトル");
+  assert.equal(pendingCard.querySelector(".swipe-edit"), null);
+  assert.notEqual(pendingCard.querySelector(".btn-delete"), null);
 
   const unexplodedCard = app.unexplodedCards()[0];
   assert.equal(unexplodedCard.querySelector(".swipe-edit"), null);

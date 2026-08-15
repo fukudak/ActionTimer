@@ -21,8 +21,8 @@ body { margin: 0; min-width: 0; padding: env(safe-area-inset-top) 16px calc(40px
 .app-header, main { width: min(100%, 480px); margin-inline: auto; }
 .app-header { padding: 28px 0 18px; border-bottom: 1px solid var(--line); }
 .header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.btn-history { flex-shrink:0; min-height:40px; margin-top:2px; padding:8px 16px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font:inherit; cursor:pointer; white-space:nowrap; }
-.btn-history:hover { border-color:var(--flame-light); color:var(--flame); }
+.icon-btn { flex-shrink:0; width:40px; height:40px; margin-top:2px; border:1px solid var(--line); border-radius:50%; background:var(--surface); color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.icon-btn:hover { border-color:var(--flame-light); color:var(--flame); }
 .history-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .view { display:none; }
 .view.view--active { display:block; }
@@ -41,15 +41,13 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .card-list { display:flex; flex-direction:column; gap:12px; list-style:none; padding:0; margin:0; }
 .empty-note { margin:0; padding:22px 12px; color:var(--muted); text-align:center; font-size:.86rem; }
 .card { min-width:0; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 3px 0 rgba(75,53,27,.06); }
-/* 横スワイプで編集・削除を出す。liの位置・状態(dataset/tabIndex/クラス)は変えず、中身だけ .swipe-content に包んでスライドさせる */
+/* 横スワイプで削除を出す。liの位置・状態(dataset/tabIndex/クラス)は変えず、中身だけ .swipe-content に包んでスライドさせる */
 .swipe-cell { position:relative; overflow:hidden; border-radius:12px; margin-bottom:0; }
 .swipe-actions { position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; }
 .swipe-btn { width:72px; border:none; font:inherit; font-weight:700; font-size:.82rem; color:#fff9ef; cursor:pointer; }
-.swipe-edit { background:var(--muted); }
 .swipe-btn.btn-delete { min-width:0; min-height:0; border:none; border-radius:0; background:var(--danger); color:#fff9ef; }
 .swipe-content { position:relative; z-index:1; touch-action:pan-y; transition:transform .25s ease; }
 .swipe-content.dragging { transition:none; }
-.inline-edit-input { flex:1; min-width:0; width:100%; border:none; border-bottom:1px dashed currentColor; background:transparent; color:inherit; font:inherit; padding:0; outline:none; }
 .task-row { display:grid; align-items:center; gap:10px; }
 .task-row--burning { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 /* 燃えるノート: タイトル自体が右端から焦げていく一行デザイン。
@@ -89,9 +87,14 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .status-badge--unexploded { color:var(--ash); }
 .unexploded-actions { display:flex; gap:7px; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
-.history-summary { margin:0 0 12px; color:var(--muted); font-size:.82rem; }
+.history-summary { display:flex; gap:12px; margin:0 0 16px; }
+.stat { flex:1; padding:14px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
+.stat__value { margin:0; font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
+.stat__label { margin:4px 0 0; color:var(--muted); font-size:.78rem; }
 .history-row__title { margin:0; }
 .history-row__meta { margin:5px 0 0; color:var(--muted); font-size:.78rem; }
+.btn-clear-history { margin:0 0 12px; padding:8px 14px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font:inherit; font-size:.82rem; cursor:pointer; }
+.btn-clear-history:hover { border-color:var(--danger); color:var(--danger); }
 .save-error { margin: 0 0 18px; padding: 12px 14px; border: 2px solid var(--danger); border-radius: 10px; background: #fff1ed; color: var(--danger); font-weight: 700; }
 .burn-out { animation:burnout 1.6s ease-in forwards; }
 @keyframes burnout { to { opacity:0; transform:translateY(8px); filter:grayscale(1); } }

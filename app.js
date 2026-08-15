@@ -149,14 +149,6 @@ function deletePending(id) {
   uiStatusEl.textContent = `「${item.title}」を削除しました。`;
   focusHeading(burningHeading);
 }
-function editItemTitle(id, kind, nextTitle) {
-  const list = kind === "pending" ? state.pending : state.unexploded;
-  const item = list.find((it) => it.id === id);
-  if (!item || !nextTitle || nextTitle === item.title) return;
-  item.title = nextTitle;
-  saveState(); render();
-  uiStatusEl.textContent = `タイトルを「${nextTitle}」に変更しました。`;
-}
 
 const burningList = document.getElementById("burning-list");
 const unexplodedList = document.getElementById("unexploded-list");
@@ -165,6 +157,7 @@ const burningEmpty = document.getElementById("burning-empty");
 const unexplodedEmpty = document.getElementById("unexploded-empty");
 const historyEmpty = document.getElementById("history-empty");
 const historySummaryEl = document.getElementById("history-summary");
+const historyClearBtn = document.getElementById("history-clear");
 const burningHeading = document.getElementById("burning-heading");
 const unexplodedHeading = document.getElementById("unexploded-heading");
 const saveErrorEl = document.getElementById("save-error");
@@ -176,15 +169,13 @@ function formatDuration(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); c
 function formatDateTime(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 function render() { renderBurning(); renderUnexploded(); renderHistory(); }
 
-// スワイプで編集・削除を出す(ポインターイベントでマウス/タッチ両対応)。
+// スワイプで削除を出す(ポインターイベントでマウス/タッチ両対応)。
 // li自身のdataset/tabIndex/状態クラス/スタイルは変えず、中身だけ .swipe-content に包んでスライドさせる。
-function buildSwipeActions(withEdit = true) {
+function buildSwipeActions() {
   const actions = document.createElement("div"); actions.className = "swipe-actions";
   const delBtn = document.createElement("button"); delBtn.type = "button"; delBtn.className = "swipe-btn btn-delete"; delBtn.textContent = "削除";
-  if (!withEdit) { actions.append(delBtn); return { actions, delBtn }; }
-  const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "swipe-btn swipe-edit"; editBtn.textContent = "編集";
-  actions.append(editBtn, delBtn);
-  return { actions, editBtn, delBtn };
+  actions.append(delBtn);
+  return { actions, delBtn };
 }
 function initSwipeCell(cell) {
   const content = cell.querySelector(".swipe-content");
@@ -220,33 +211,11 @@ function initSwipeCell(cell) {
   content.addEventListener("pointercancel", endDrag);
   content.addEventListener("dragstart", (e) => e.preventDefault());
 }
-function startEditTitle(cell, id, kind) {
-  const titleEl = cell.querySelector(".fuse-title") || cell.querySelector(".unexploded-note__title");
-  if (!titleEl || titleEl.querySelector("input")) return;
-  cell.closeSwipe && cell.closeSwipe();
-  const original = titleEl.textContent;
-  const input = document.createElement("input");
-  input.type = "text"; input.maxLength = 100; input.className = "inline-edit-input"; input.value = original;
-  titleEl.textContent = ""; titleEl.appendChild(input); input.focus(); input.select();
-  let done = false;
-  function commit() {
-    if (done) return;
-    done = true;
-    editItemTitle(id, kind, input.value.trim());
-  }
-  input.addEventListener("blur", commit);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") input.blur();
-    if (e.key === "Escape") { done = true; titleEl.textContent = original; }
-  });
-}
-
 function renderBurning() {
   burningList.textContent = "";
   for (const item of state.pending) {
     const li = document.createElement("li"); li.className = "swipe-cell"; li.dataset.id = item.id; li.dataset.createdAt = String(item.createdAt); li.tabIndex = -1;
-    const { actions, editBtn, delBtn } = buildSwipeActions();
-    editBtn.addEventListener("click", () => startEditTitle(li, item.id, "pending"));
+    const { actions, delBtn } = buildSwipeActions();
     delBtn.addEventListener("click", () => deletePending(item.id));
 
     const content = document.createElement("div"); content.className = "swipe-content card task-row task-row--burning";
@@ -255,7 +224,7 @@ function renderBurning() {
     note.appendChild(title);
     const progress = document.createElement("progress"); progress.className = "burn-meter sr-only"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`);
     const meta = document.createElement("div"); meta.className = "task-row__meta card-meta";
-    const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(remaining, ignited, progress);
+    const remaining = document.createElement("span"); remaining.className = "remaining"; meta.append(remaining, progress);
     content.append(note, buildStartControls(item), meta);
 
     li.append(actions, content); burningList.appendChild(li);
@@ -284,7 +253,7 @@ function renderUnexploded() {
   unexplodedList.textContent = "";
   for (const item of state.unexploded) {
     const li = document.createElement("li"); li.className = "swipe-cell"; li.dataset.id = item.id; li.tabIndex = -1;
-    const { actions: swipeActions, delBtn } = buildSwipeActions(false);
+    const { actions: swipeActions, delBtn } = buildSwipeActions();
     delBtn.setAttribute("aria-label", `「${item.title}」を削除する`);
     delBtn.addEventListener("click", () => deleteUnexploded(item.id));
 
@@ -312,7 +281,9 @@ function renderHistory() {
     li.append(title, meta); historyList.appendChild(li);
   }
   historyEmpty.hidden = state.history.length > 0;
+  historyClearBtn.hidden = state.history.length === 0;
   const resolvedCount = state.history.length + state.unexploded.length;
+  historySummaryEl.textContent = "";
   if (state.history.length === 0 || resolvedCount === 0) {
     historySummaryEl.hidden = true;
     return;
@@ -320,10 +291,28 @@ function renderHistory() {
   const avgMs = state.history.reduce((sum, it) => sum + (it.startedAt - it.createdAt), 0) / state.history.length;
   const rate = Math.round((state.history.length / resolvedCount) * 100);
   historySummaryEl.hidden = false;
-  historySummaryEl.textContent = `平均着手時間 ${formatDuration(avgMs)}・着手率 ${state.history.length}/${resolvedCount}(${rate}%)`;
+  historySummaryEl.append(
+    buildStat(`${rate}%(${state.history.length}/${resolvedCount})`, "着手率"),
+    buildStat(formatDuration(avgMs), "平均着手時間"),
+  );
+}
+function buildStat(value, label) {
+  const stat = document.createElement("div"); stat.className = "stat";
+  const valueEl = document.createElement("p"); valueEl.className = "stat__value"; valueEl.textContent = value;
+  const labelEl = document.createElement("p"); labelEl.className = "stat__label"; labelEl.textContent = label;
+  stat.append(valueEl, labelEl); return stat;
+}
+function clearHistory() {
+  if (state.history.length === 0) return;
+  if (!confirm("着手履歴をすべて削除します。この操作は取り消せません。")) return;
+  state.history = [];
+  saveState(); render();
+  uiStatusEl.textContent = "着手履歴をすべて削除しました。";
+  focusHeading(document.getElementById("history-heading"));
 }
 
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
+historyClearBtn.addEventListener("click", clearHistory);
 
 // 今/履歴の切り替え(履歴ボタンで進み、戻るボタンで戻る)
 const historyToggle = document.getElementById("history-toggle");
