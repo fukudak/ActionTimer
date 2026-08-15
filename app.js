@@ -162,17 +162,15 @@ function renderBurning() {
   burningList.textContent = "";
   for (const item of state.pending) {
     const li = document.createElement("li"); li.className = "card task-row task-row--burning"; li.dataset.id = item.id; li.dataset.createdAt = String(item.createdAt); li.tabIndex = -1;
-    const note = document.createElement("div"); note.className = "task-row__note";
-    const sticky = document.createElement("div"); sticky.className = "sticky-note";
-    const ash = document.createElement("div"); ash.className = "sticky-note__ash"; ash.setAttribute("aria-hidden", "true");
-    const surface = document.createElement("div"); surface.className = "sticky-note__surface"; surface.setAttribute("aria-hidden", "true");
-    const front = document.createElement("div"); front.className = "sticky-note__burn-front"; front.setAttribute("aria-hidden", "true");
-    const title = document.createElement("p"); title.className = "sticky-note__title card-title"; title.textContent = item.title; sticky.append(ash, surface, front, title);
-    const progress = document.createElement("progress"); progress.className = "burn-meter"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`); note.append(sticky, progress);
+    const note = document.createElement("div"); note.className = "fuse-note";
+    const titleUnburnt = document.createElement("span"); titleUnburnt.className = "fuse-title fuse-title--unburnt card-title"; titleUnburnt.textContent = item.title;
+    const titleBurnt = document.createElement("span"); titleBurnt.className = "fuse-title fuse-title--burnt card-title"; titleBurnt.textContent = item.title; titleBurnt.setAttribute("aria-hidden", "true");
+    note.append(titleUnburnt, titleBurnt);
+    const progress = document.createElement("progress"); progress.className = "burn-meter sr-only"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`);
     const meta = document.createElement("div"); meta.className = "task-row__meta card-meta";
     const badge = document.createElement("span"); badge.className = "status-badge"; const badgeText = document.createElement("span"); badgeText.className = "status-badge__text"; badgeText.textContent = "燃焼中"; badge.append(badgeText);
-    const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(badge, remaining, ignited);
-    li.append(note, meta, buildStartControls(item)); burningList.appendChild(li);
+    const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(badge, remaining, ignited, progress);
+    li.append(note, buildStartControls(item), meta); burningList.appendChild(li);
   }
   burningEmpty.hidden = state.pending.length > 0;
   if (state.pending.length && !tickTimerId) tickTimerId = setInterval(tick, RENDER_INTERVAL_MS);
