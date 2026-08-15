@@ -117,6 +117,7 @@ export class FakeElement {
   }
 
   focus() {}
+  select() {}
 
   get textContent() {
     return this._textContent;
@@ -156,6 +157,7 @@ function createDocument() {
   const ids = {};
   const created = [];
   const inputIds = new Set(["add-input"]);
+  const buttonIds = new Set(["history-toggle"]);
   for (const id of [
     "burning-list",
     "unexploded-list",
@@ -171,8 +173,11 @@ function createDocument() {
     "add-form",
     "add-input",
     "ui-status",
+    "history-toggle",
+    "view-now",
+    "view-history",
   ]) {
-    ids[id] = new FakeElement(inputIds.has(id) ? "input" : "div");
+    ids[id] = new FakeElement(inputIds.has(id) ? "input" : buttonIds.has(id) ? "button" : "div");
     if (id === "burning-heading" || id === "unexploded-heading" || id === "history-heading") ids[id].setAttribute("tabindex", "-1");
   }
 

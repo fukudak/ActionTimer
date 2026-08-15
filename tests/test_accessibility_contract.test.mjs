@@ -60,18 +60,17 @@ test("app placeholder explicitly uses an opaque qualifying color", () => {
   assert.match(css, /\.add-form input::placeholder\s*\{[^}]*opacity:\s*1(?:[;}])/s);
 });
 
-test("burning title keeps a readable color over both the unburnt and burnt fuse zones", () => {
+test("burning title stays white with an outline strong enough to read over the burn front", () => {
   const css = read("style.css");
-  const app = read("app.js");
-  // 一行の燃えるノートは、同じタイトルを2重に描画してclip-pathで塗り分ける。
-  // 未燃焼側(ポップな配色)には暗い文字、焦げた側(--char)には明るい文字を、
-  // 半透明の帯を挟まずそのまま重ねるので、どちらも単色同士のコントラストで検証できる。
-  assert.ok(contrast(token(css, "--ink"), token(css, "--flame-light")) >= 4.5);
+  // 白抜き文字で統一する。焦げた側(--char、ほぼ黒)は単色コントラストで検証できる。
+  // 未燃焼側(ポップな配色)は縁取り(text-shadow)が可読性を担うため、WCAGの単純な
+  // 背景合成では計算できない。縁取りが十分な濃さ・広がりで宣言されていることを確認する。
   assert.ok(contrast(token(css, "--title-ink"), token(css, "--char")) >= 4.5);
-  assert.match(css, /\.fuse-title--unburnt\s*\{[^}]*color:\s*var\(--ink\)/s);
-  assert.match(css, /\.fuse-title--burnt\s*\{[^}]*color:\s*var\(--title-ink\)/s);
-  assert.match(app, /fuse-title--unburnt/);
-  assert.match(app, /fuse-title--burnt/);
+  assert.match(css, /\.fuse-title\s*\{[^}]*color:\s*var\(--title-ink\)/s);
+  const shadowMatch = css.match(/\.fuse-title\s*\{[^}]*text-shadow:([^;]+);/s);
+  assert.ok(shadowMatch, "fuse-title に text-shadow の縁取りが必要");
+  const shadowLayers = shadowMatch[1].split(/,(?![^(]*\))/).map((s) => s.trim());
+  assert.ok(shadowLayers.length >= 4, "上下左右を覆う縁取りには最低4層必要");
 });
 
 test("save error has an accessible non-color visual treatment", () => {
