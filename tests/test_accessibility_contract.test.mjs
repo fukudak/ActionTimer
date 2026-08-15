@@ -26,16 +26,6 @@ function token(css, name) {
   return css.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`))[1];
 }
 
-function numericToken(css, name) {
-  return Number.parseFloat(css.match(new RegExp(`${name}:\\s*([0-9.]+)`))[1]);
-}
-
-function composite(foreground, background, alpha) {
-  const fg = hexRgb(foreground);
-  const bg = hexRgb(background);
-  return `#${fg.map((channel, index) => Math.round((channel * alpha + bg[index] * (1 - alpha)) * 255).toString(16).padStart(2, "0")).join("")}`;
-}
-
 test("app meaningful text color pairs meet WCAG AA", () => {
   const css = read("style.css");
   assert.ok(contrast(token(css, "--flame"), token(css, "--surface")) >= 4.5);
@@ -70,16 +60,18 @@ test("app placeholder explicitly uses an opaque qualifying color", () => {
   assert.match(css, /\.add-form input::placeholder\s*\{[^}]*opacity:\s*1(?:[;}])/s);
 });
 
-test("burning title keeps a readable effective surface over burn front", () => {
+test("burning title keeps a readable color over both the unburnt and burnt fuse zones", () => {
   const css = read("style.css");
-  const title = token(css, "--title-ink");
-  const readingSurface = token(css, "--title-surface");
-  const titleAlpha = numericToken(css, "--title-surface-alpha");
-  const worstEffectiveBackground = ["#b6402b", "#f6d987"]
-    .map((underlying) => composite(readingSurface, underlying, titleAlpha))
-    .sort((a, b) => contrast(title, a) - contrast(title, b))[0];
-  assert.match(css, /\.sticky-note__title\s*\{[^}]*background:\s*var\(--title-surface\)/s);
-  assert.ok(contrast(title, worstEffectiveBackground) >= 4.5);
+  const app = read("app.js");
+  // 一行の燃えるノートは、同じタイトルを2重に描画してclip-pathで塗り分ける。
+  // 未燃焼側(ポップな配色)には暗い文字、焦げた側(--char)には明るい文字を、
+  // 半透明の帯を挟まずそのまま重ねるので、どちらも単色同士のコントラストで検証できる。
+  assert.ok(contrast(token(css, "--ink"), token(css, "--flame-light")) >= 4.5);
+  assert.ok(contrast(token(css, "--title-ink"), token(css, "--char")) >= 4.5);
+  assert.match(css, /\.fuse-title--unburnt\s*\{[^}]*color:\s*var\(--ink\)/s);
+  assert.match(css, /\.fuse-title--burnt\s*\{[^}]*color:\s*var\(--title-ink\)/s);
+  assert.match(app, /fuse-title--unburnt/);
+  assert.match(app, /fuse-title--burnt/);
 });
 
 test("save error has an accessible non-color visual treatment", () => {
