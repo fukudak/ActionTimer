@@ -408,7 +408,7 @@
 
       <p class="hero__sub">
         やろうと思い立ったことを登録すると、72時間の導火線が燃え始める。<br>
-        期限内に着手すれば確認なしで即座に消え、燃え尽きれば「不発弾」として自動保存される。<br>
+        期限内に着手すれば確認なしで着手履歴に記録され、燃え尽きれば「燃え尽きた」として自動保存される。<br>
         通知もアカウントも要らない。ただ、炎を見るだけ。
       </p>
 
@@ -458,7 +458,7 @@
         <article class="problem-card fade-in">
           <span class="problem-card__icon" aria-hidden="true">📋</span>
           <h3 class="problem-card__title">ToDoの肥大化</h3>
-          <p class="problem-card__desc">増え続けるリストは罪悪感を生む。燃え尽きた項目は自動的に「不発弾」へ移動し、再点火か削除を明示的に選ぶまで残る。</p>
+          <p class="problem-card__desc">増え続けるリストは罪悪感を生む。燃え尽きた項目は自動的に「燃え尽きた」へ移動し、再点火か削除を明示的に選ぶまで残る。</p>
         </article>
       </div>
     </section>
@@ -496,7 +496,7 @@
           </div>
           <div class="step__content">
             <h3 class="step__title">着手したら「着手した」ボタンを押す</h3>
-            <p class="step__desc">確認画面なし、記録なし。ボタンを押した瞬間にリストから消えるだけ。着手した事実はどこにも残らない。達成感より次の行動を優先する設計。</p>
+            <p class="step__desc">確認画面なし、追加入力なし。ボタンを押した瞬間にリストから消え、タイトルと日時だけが着手履歴に記録される。理由やメモの入力は求めない。</p>
           </div>
         </li>
         <li class="step fade-in">
@@ -505,8 +505,8 @@
             <span class="step__connector"></span>
           </div>
           <div class="step__content">
-            <h3 class="step__title">燃え尽きたら「不発弾」として自動保存</h3>
-            <p class="step__desc">72時間を過ぎると、その項目は燃え尽きアニメーションとともに自動的に不発弾リストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除すれば完全に消える。</p>
+            <h3 class="step__title">燃え尽きたら「燃え尽きた」として自動保存</h3>
+            <p class="step__desc">72時間を過ぎると、その項目は燃え尽きアニメーションとともに自動的に燃え尽きたリストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除すれば完全に消える。</p>
           </div>
         </li>
       </ol>
@@ -528,15 +528,15 @@
         <li class="rule-item fade-in">
           <span class="rule-item__icon" aria-hidden="true">🚫</span>
           <div class="rule-item__text">
-            <strong>着手したら確認なし・痕跡なし</strong>
-            「着手した」ボタンを押した瞬間、確認ダイアログも履歴もなくリストから消える。着手した事実はアプリのどこにも残らない。
+            <strong>着手したら確認なし・追加入力なし</strong>
+            「着手した」ボタンを押した瞬間、確認ダイアログなしでリストから消える。タイトルと日時だけが着手履歴に記録され、理由やメモは求めない。
           </div>
         </li>
         <li class="rule-item fade-in">
           <span class="rule-item__icon" aria-hidden="true">💣</span>
           <div class="rule-item__text">
-            <strong>燃え尽きたら自動的に不発弾へ</strong>
-            期限を過ぎると燃え尽きアニメーションが流れ、自動で不発弾リストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除は確認後に実行される。
+            <strong>燃え尽きたら自動的に「燃え尽きた」へ</strong>
+            期限を過ぎると燃え尽きアニメーションが流れ、自動で燃え尽きたリストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除は確認後に実行される。
           </div>
         </li>
         <li class="rule-item fade-in">
