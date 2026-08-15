@@ -140,6 +140,23 @@ function deleteUnexploded(id) {
   uiStatusEl.textContent = `「${item.title}」を削除しました。`;
   focusHeading(unexplodedHeading);
 }
+function deletePending(id) {
+  const item = state.pending.find((it) => it.id === id);
+  if (!item) return;
+  if (!confirm(`「${item.title}」を削除します。この操作は取り消せません。`)) return;
+  state.pending = state.pending.filter((it) => it.id !== id);
+  saveState(); render();
+  uiStatusEl.textContent = `「${item.title}」を削除しました。`;
+  focusHeading(burningHeading);
+}
+function editItemTitle(id, kind, nextTitle) {
+  const list = kind === "pending" ? state.pending : state.unexploded;
+  const item = list.find((it) => it.id === id);
+  if (!item || !nextTitle || nextTitle === item.title) return;
+  item.title = nextTitle;
+  saveState(); render();
+  uiStatusEl.textContent = `タイトルを「${nextTitle}」に変更しました。`;
+}
 
 const burningList = document.getElementById("burning-list");
 const unexplodedList = document.getElementById("unexploded-list");
@@ -158,19 +175,90 @@ function formatRemaining(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); 
 function formatDuration(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; if (h > 0) return m > 0 ? `${h}時間${m}分` : `${h}時間`; return `${m}分`; }
 function formatDateTime(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 function render() { renderBurning(); renderUnexploded(); renderHistory(); }
+
+// スワイプで編集・削除を出す(ポインターイベントでマウス/タッチ両対応)。
+// li自身のdataset/tabIndex/状態クラス/スタイルは変えず、中身だけ .swipe-content に包んでスライドさせる。
+function buildSwipeActions() {
+  const actions = document.createElement("div"); actions.className = "swipe-actions";
+  const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "swipe-btn swipe-edit"; editBtn.textContent = "編集";
+  const delBtn = document.createElement("button"); delBtn.type = "button"; delBtn.className = "swipe-btn btn-delete"; delBtn.textContent = "削除";
+  actions.append(editBtn, delBtn);
+  return { actions, editBtn, delBtn };
+}
+function initSwipeCell(cell) {
+  const content = cell.querySelector(".swipe-content");
+  const actions = cell.querySelector(".swipe-actions");
+  if (!content || !actions) return;
+  let startX = 0, originX = 0, currentX = 0, dragging = false;
+  function openWidth() { return actions.getBoundingClientRect().width; }
+  function setX(x, animate) {
+    content.classList.toggle("dragging", !animate);
+    content.style.transform = `translateX(${x}px)`;
+    currentX = x;
+  }
+  cell.closeSwipe = () => setX(0, true);
+  content.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button, input, a")) return;
+    dragging = true; startX = e.clientX; originX = currentX;
+    try { content.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+    document.querySelectorAll(".swipe-content").forEach((el) => { if (el !== content) el.style.transform = "translateX(0px)"; });
+    e.preventDefault();
+  });
+  content.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const delta = e.clientX - startX;
+    setX(Math.min(0, Math.max(-openWidth(), originX + delta)), false);
+    e.preventDefault();
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    setX(currentX < -openWidth() / 2 ? -openWidth() : 0, true);
+  }
+  content.addEventListener("pointerup", endDrag);
+  content.addEventListener("pointercancel", endDrag);
+  content.addEventListener("dragstart", (e) => e.preventDefault());
+}
+function startEditTitle(cell, id, kind) {
+  const titleEl = cell.querySelector(".fuse-title") || cell.querySelector(".unexploded-note__title");
+  if (!titleEl || titleEl.querySelector("input")) return;
+  cell.closeSwipe && cell.closeSwipe();
+  const original = titleEl.textContent;
+  const input = document.createElement("input");
+  input.type = "text"; input.maxLength = 100; input.className = "inline-edit-input"; input.value = original;
+  titleEl.textContent = ""; titleEl.appendChild(input); input.focus(); input.select();
+  let done = false;
+  function commit() {
+    if (done) return;
+    done = true;
+    editItemTitle(id, kind, input.value.trim());
+  }
+  input.addEventListener("blur", commit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();
+    if (e.key === "Escape") { done = true; titleEl.textContent = original; }
+  });
+}
+
 function renderBurning() {
   burningList.textContent = "";
   for (const item of state.pending) {
-    const li = document.createElement("li"); li.className = "card task-row task-row--burning"; li.dataset.id = item.id; li.dataset.createdAt = String(item.createdAt); li.tabIndex = -1;
+    const li = document.createElement("li"); li.className = "swipe-cell"; li.dataset.id = item.id; li.dataset.createdAt = String(item.createdAt); li.tabIndex = -1;
+    const { actions, editBtn, delBtn } = buildSwipeActions();
+    editBtn.addEventListener("click", () => startEditTitle(li, item.id, "pending"));
+    delBtn.addEventListener("click", () => deletePending(item.id));
+
+    const content = document.createElement("div"); content.className = "swipe-content card task-row task-row--burning";
     const note = document.createElement("div"); note.className = "fuse-note";
-    const titleUnburnt = document.createElement("span"); titleUnburnt.className = "fuse-title fuse-title--unburnt card-title"; titleUnburnt.textContent = item.title;
-    const titleBurnt = document.createElement("span"); titleBurnt.className = "fuse-title fuse-title--burnt card-title"; titleBurnt.textContent = item.title; titleBurnt.setAttribute("aria-hidden", "true");
-    note.append(titleUnburnt, titleBurnt);
+    const title = document.createElement("span"); title.className = "fuse-title card-title"; title.textContent = item.title;
+    note.appendChild(title);
     const progress = document.createElement("progress"); progress.className = "burn-meter sr-only"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`);
     const meta = document.createElement("div"); meta.className = "task-row__meta card-meta";
-    const badge = document.createElement("span"); badge.className = "status-badge"; const badgeText = document.createElement("span"); badgeText.className = "status-badge__text"; badgeText.textContent = "燃焼中"; badge.append(badgeText);
-    const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(badge, remaining, ignited, progress);
-    li.append(note, buildStartControls(item), meta); burningList.appendChild(li);
+    const remaining = document.createElement("span"); remaining.className = "remaining"; const ignited = document.createElement("time"); ignited.className = "ignited-at"; ignited.textContent = `${formatDateTime(item.createdAt)} 点火`; meta.append(remaining, ignited, progress);
+    content.append(note, buildStartControls(item), meta);
+
+    li.append(actions, content); burningList.appendChild(li);
+    initSwipeCell(li);
   }
   burningEmpty.hidden = state.pending.length > 0;
   if (state.pending.length && !tickTimerId) tickTimerId = setInterval(tick, RENDER_INTERVAL_MS);
@@ -183,25 +271,34 @@ function tick() {
     const createdAt = Number(li.dataset.createdAt); const remaining = createdAt + LIMIT_MS - now; const progress = Math.max(0, Math.min(1, (now - createdAt) / LIMIT_MS));
     li.querySelector(".remaining").textContent = remaining > 0 ? formatRemaining(remaining) : "燃え尽きました";
     li.querySelector(".remaining").classList.toggle("urgent", remaining > 0 && remaining < URGENT_THRESHOLD_MS);
-    li.querySelector(".status-badge__text").textContent = remaining > 0 ? (remaining < URGENT_THRESHOLD_MS ? "期限間近" : "燃焼中") : "燃え尽きました";
     li.querySelector(".burn-meter").value = progress; li.style.setProperty("--burn-progress", String(progress)); li.style.setProperty("--burn-edge", `${(1 - progress) * 100}%`); li.classList.toggle("is-expired", remaining <= 0);
     if (remaining <= 0 && !burningOut.has(li.dataset.id)) { burningOut.add(li.dataset.id); li.classList.add("burn-out"); li.querySelector(".btn-start")?.setAttribute("disabled", "true"); setTimeout(() => expireItem(li.dataset.id), BURNOUT_ANIM_MS); }
   }
 }
 function buildStartControls(item) {
   const wrap = document.createElement("div"); wrap.className = "task-row__actions";
-  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手した"; button.setAttribute("aria-label", `「${item.title}」を着手したとして消す`); button.addEventListener("click", () => startItem(item.id)); wrap.appendChild(button); return wrap;
+  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手"; button.setAttribute("aria-label", `「${item.title}」を着手として消す`); button.addEventListener("click", () => startItem(item.id)); wrap.appendChild(button); return wrap;
 }
 function renderUnexploded() {
   unexplodedList.textContent = "";
   for (const item of state.unexploded) {
-    const li = document.createElement("li"); li.className = "card task-row task-row--unexploded unexploded"; li.dataset.id = item.id; li.tabIndex = -1;
+    const li = document.createElement("li"); li.className = "swipe-cell"; li.dataset.id = item.id; li.tabIndex = -1;
+    const { actions: swipeActions, editBtn, delBtn } = buildSwipeActions();
+    editBtn.addEventListener("click", () => startEditTitle(li, item.id, "unexploded"));
+    delBtn.setAttribute("aria-label", `「${item.title}」を削除する`);
+    delBtn.addEventListener("click", () => deleteUnexploded(item.id));
+
+    const content = document.createElement("div"); content.className = "swipe-content card task-row task-row--unexploded unexploded";
     const note = document.createElement("div"); note.className = "unexploded-note"; const title = document.createElement("p"); title.className = "unexploded-note__title card-title"; title.textContent = item.title; note.appendChild(title);
     const meta = document.createElement("p"); meta.className = "unexploded-meta card-meta"; meta.textContent = `${formatDateTime(item.failedAt)} に燃え尽き`;
     const badge = document.createElement("span"); badge.className = "status-badge status-badge--unexploded"; badge.textContent = "燃え尽きた"; meta.appendChild(badge);
-    const actions = document.createElement("div"); actions.className = "unexploded-actions";
+    const reigniteWrap = document.createElement("div"); reigniteWrap.className = "unexploded-actions";
     const reignite = document.createElement("button"); reignite.type = "button"; reignite.className = "btn-reignite"; reignite.textContent = "再点火"; reignite.setAttribute("aria-label", `「${item.title}」を再点火する`); reignite.addEventListener("click", () => reigniteItem(item.id));
-    const del = document.createElement("button"); del.type = "button"; del.className = "btn-delete"; del.textContent = "削除"; del.setAttribute("aria-label", `「${item.title}」を削除する`); del.addEventListener("click", () => deleteUnexploded(item.id)); actions.append(reignite, del); li.append(note, meta, actions); unexplodedList.appendChild(li);
+    reigniteWrap.appendChild(reignite);
+    content.append(note, meta, reigniteWrap);
+
+    li.append(swipeActions, content); unexplodedList.appendChild(li);
+    initSwipeCell(li);
   }
   unexplodedEmpty.hidden = state.unexploded.length > 0;
 }
@@ -227,5 +324,22 @@ function renderHistory() {
 }
 
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
+
+// 今/履歴の切り替え(右上アイコン1つで行き来する)
+const ICON_HISTORY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
+const ICON_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+const historyToggle = document.getElementById("history-toggle");
+const viewNow = document.getElementById("view-now");
+const viewHistory = document.getElementById("view-history");
+historyToggle.innerHTML = ICON_HISTORY;
+function showView(name) {
+  const isHistory = name === "history";
+  viewNow.classList.toggle("view--active", !isHistory);
+  viewHistory.classList.toggle("view--active", isHistory);
+  historyToggle.innerHTML = isHistory ? ICON_BACK : ICON_HISTORY;
+  historyToggle.setAttribute("aria-label", isHistory ? "今に戻る" : "履歴を見る");
+}
+historyToggle.addEventListener("click", () => showView(viewHistory.classList.contains("view--active") ? "now" : "history"));
+
 render();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch((e) => console.error("Service Workerの登録に失敗しました。", e));

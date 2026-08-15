@@ -20,6 +20,11 @@
 body { margin: 0; min-width: 0; padding: env(safe-area-inset-top) 16px calc(40px + env(safe-area-inset-bottom)); background: var(--bg); color: var(--ink); line-height: 1.6; overflow-wrap: anywhere; }
 .app-header, main { width: min(100%, 480px); margin-inline: auto; }
 .app-header { padding: 28px 0 18px; border-bottom: 1px solid var(--line); }
+.header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.icon-btn { flex-shrink:0; width:40px; height:40px; margin-top:2px; border:1px solid var(--line); border-radius:50%; background:var(--surface); color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.icon-btn:hover { border-color:var(--flame-light); color:var(--flame); }
+.view { display:none; }
+.view.view--active { display:block; }
 h1, h2, .card-title { font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; }
 h1 { margin: 0; font-size: clamp(1.6rem, 8vw, 2.15rem); letter-spacing: .14em; font-weight: 600; }
 .tagline { margin: 4px 0 0; color: var(--muted); font-size: .8rem; }
@@ -35,11 +40,19 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .card-list { display:flex; flex-direction:column; gap:12px; list-style:none; padding:0; margin:0; }
 .empty-note { margin:0; padding:22px 12px; color:var(--muted); text-align:center; font-size:.86rem; }
 .card { min-width:0; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 3px 0 rgba(75,53,27,.06); }
+/* 横スワイプで編集・削除を出す。liの位置・状態(dataset/tabIndex/クラス)は変えず、中身だけ .swipe-content に包んでスライドさせる */
+.swipe-cell { position:relative; overflow:hidden; border-radius:12px; margin-bottom:0; }
+.swipe-actions { position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; }
+.swipe-btn { width:72px; border:none; font:inherit; font-weight:700; font-size:.82rem; color:#fff9ef; cursor:pointer; }
+.swipe-edit { background:var(--muted); }
+.swipe-btn.btn-delete { min-width:0; min-height:0; border:none; border-radius:0; background:var(--danger); color:#fff9ef; }
+.swipe-content { position:relative; z-index:1; touch-action:pan-y; transition:transform .25s ease; }
+.swipe-content.dragging { transition:none; }
+.inline-edit-input { flex:1; min-width:0; width:100%; border:none; border-bottom:1px dashed currentColor; background:transparent; color:inherit; font:inherit; padding:0; outline:none; }
 .task-row { display:grid; align-items:center; gap:10px; }
 .task-row--burning { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 /* 燃えるノート: タイトル自体が右端から焦げていく一行デザイン。
-   未燃焼側はポップな配色そのままに暗い文字を、焦げた側は明るい文字を重ね、
-   半透明の帯で色を沈めずにコントラストを確保する(2重テキストをclip-pathで塗り分け)。 */
+   文字は白抜きで統一し、縁取り(text-shadow)でどちらの背景の上でも読めるようにする。 */
 .fuse-note {
   position:relative; flex:1 1 auto; min-width:0; height:48px; border-radius:10px; overflow:hidden;
   background:linear-gradient(100deg,var(--flame-light),var(--flame) 70%);
@@ -55,10 +68,9 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 }
 .fuse-title {
   position:absolute; inset:0; z-index:2; display:flex; align-items:center; padding:0 14px;
-  font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  color:var(--title-ink); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:-1px -1px 1px rgba(0,0,0,.6),1px -1px 1px rgba(0,0,0,.6),-1px 1px 1px rgba(0,0,0,.6),1px 1px 1px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.45);
 }
-.fuse-title--unburnt { color:var(--ink); clip-path:inset(0 calc(100% - var(--burn-edge)) 0 0); }
-.fuse-title--burnt { color:var(--title-ink); clip-path:inset(0 0 0 var(--burn-edge)); }
 .task-row__actions { flex-shrink:0; align-self:center; }
 .task-row--burning .task-row__meta { flex-basis:100%; order:3; }
 .task-row__meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 9px; min-width:0; margin-top:8px; color:var(--muted); font-size:.78rem; }
