@@ -157,7 +157,7 @@ function createDocument() {
   const ids = {};
   const created = [];
   const inputIds = new Set(["add-input"]);
-  const buttonIds = new Set(["history-toggle"]);
+  const buttonIds = new Set(["history-toggle", "history-back"]);
   for (const id of [
     "burning-list",
     "unexploded-list",
@@ -174,6 +174,7 @@ function createDocument() {
     "add-input",
     "ui-status",
     "history-toggle",
+    "history-back",
     "view-now",
     "view-history",
   ]) {

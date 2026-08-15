@@ -42,7 +42,7 @@ test("backup UI and implementation are fully removed", () => {
 
 test("service worker cache version and assets include the LP", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v15";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v16";/);
   const block = sw.match(/const ASSETS = \[([\s\S]*?)\];/)?.[1] ?? "";
   const assets = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(assets, [

@@ -17,7 +17,7 @@
         <h1>吉日タイマー</h1>
         <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
       </div>
-      <button type="button" class="icon-btn" id="history-toggle" aria-label="履歴を見る"></button>
+      <button type="button" class="btn-history" id="history-toggle">履歴</button>
     </div>
   </header>
   <main>
@@ -42,7 +42,10 @@
     </div>
     <div id="view-history" class="view">
       <section id="history-section" class="list-section list-section--history" aria-labelledby="history-heading">
-        <h2 id="history-heading" tabindex="-1">履歴</h2>
+        <div class="history-header-row">
+          <h2 id="history-heading" tabindex="-1">履歴</h2>
+          <button type="button" class="btn-history" id="history-back">戻る</button>
+        </div>
         <p id="history-summary" class="history-summary" hidden></p>
         <ul id="history-list" class="card-list"></ul>
         <p id="history-empty" class="empty-note" hidden>まだ着手した履歴はありません。</p>

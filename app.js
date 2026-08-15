@@ -178,10 +178,11 @@ function render() { renderBurning(); renderUnexploded(); renderHistory(); }
 
 // スワイプで編集・削除を出す(ポインターイベントでマウス/タッチ両対応)。
 // li自身のdataset/tabIndex/状態クラス/スタイルは変えず、中身だけ .swipe-content に包んでスライドさせる。
-function buildSwipeActions() {
+function buildSwipeActions(withEdit = true) {
   const actions = document.createElement("div"); actions.className = "swipe-actions";
-  const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "swipe-btn swipe-edit"; editBtn.textContent = "編集";
   const delBtn = document.createElement("button"); delBtn.type = "button"; delBtn.className = "swipe-btn btn-delete"; delBtn.textContent = "削除";
+  if (!withEdit) { actions.append(delBtn); return { actions, delBtn }; }
+  const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "swipe-btn swipe-edit"; editBtn.textContent = "編集";
   actions.append(editBtn, delBtn);
   return { actions, editBtn, delBtn };
 }
@@ -283,8 +284,7 @@ function renderUnexploded() {
   unexplodedList.textContent = "";
   for (const item of state.unexploded) {
     const li = document.createElement("li"); li.className = "swipe-cell"; li.dataset.id = item.id; li.tabIndex = -1;
-    const { actions: swipeActions, editBtn, delBtn } = buildSwipeActions();
-    editBtn.addEventListener("click", () => startEditTitle(li, item.id, "unexploded"));
+    const { actions: swipeActions, delBtn } = buildSwipeActions(false);
     delBtn.setAttribute("aria-label", `「${item.title}」を削除する`);
     delBtn.addEventListener("click", () => deleteUnexploded(item.id));
 
@@ -325,21 +325,18 @@ function renderHistory() {
 
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
 
-// 今/履歴の切り替え(右上アイコン1つで行き来する)
-const ICON_HISTORY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
-const ICON_BACK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+// 今/履歴の切り替え(履歴ボタンで進み、戻るボタンで戻る)
 const historyToggle = document.getElementById("history-toggle");
+const historyBack = document.getElementById("history-back");
 const viewNow = document.getElementById("view-now");
 const viewHistory = document.getElementById("view-history");
-historyToggle.innerHTML = ICON_HISTORY;
 function showView(name) {
   const isHistory = name === "history";
   viewNow.classList.toggle("view--active", !isHistory);
   viewHistory.classList.toggle("view--active", isHistory);
-  historyToggle.innerHTML = isHistory ? ICON_BACK : ICON_HISTORY;
-  historyToggle.setAttribute("aria-label", isHistory ? "今に戻る" : "履歴を見る");
 }
-historyToggle.addEventListener("click", () => showView(viewHistory.classList.contains("view--active") ? "now" : "history"));
+historyToggle.addEventListener("click", () => showView("history"));
+historyBack.addEventListener("click", () => showView("now"));
 
 render();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch((e) => console.error("Service Workerの登録に失敗しました。", e));
