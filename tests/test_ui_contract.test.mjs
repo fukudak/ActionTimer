@@ -38,10 +38,11 @@ test("history feature is present with title, elapsed time, and rate", () => {
   assert.match(app, /着手率/);
 });
 
-test("history screen is reached via a header icon toggle", () => {
+test("history screen is reached via a header button and a back button", () => {
   const html = read("index.html");
   const app = read("app.js");
   assert.match(html, /id="history-toggle"/);
+  assert.match(html, /id="history-back"/);
   assert.match(html, /id="view-now"/);
   assert.match(html, /id="view-history"/);
   assert.match(app, /showView/);

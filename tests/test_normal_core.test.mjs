@@ -93,7 +93,7 @@ test("pending_delete_cancel_and_confirm", () => {
   assert.equal(app.doc._ids["ui-status"].textContent, "「消す候補」を削除しました。");
 });
 
-test("swipe_edit_updates_pending_and_unexploded_title", () => {
+test("swipe_edit_updates_pending_title", () => {
   const app = loadApp({
     now: T0,
     storage: storage({ pending: [{ id: "p1", title: "旧タイトル", createdAt: T0 }], unexploded: [{ id: "u1", title: "旧不発弾", createdAt: T0, failedAt: T0 }] }),
@@ -106,11 +106,8 @@ test("swipe_edit_updates_pending_and_unexploded_title", () => {
   assert.equal(app.readStorage().pending[0].title, "新タイトル");
 
   const unexplodedCard = app.unexplodedCards()[0];
-  unexplodedCard.querySelector(".swipe-edit").dispatch("click");
-  const unexplodedInput = unexplodedCard.querySelector(".unexploded-note__title").querySelector("input");
-  unexplodedInput.value = "新不発弾名";
-  unexplodedInput.dispatch("blur");
-  assert.equal(app.readStorage().unexploded[0].title, "新不発弾名");
+  assert.equal(unexplodedCard.querySelector(".swipe-edit"), null);
+  assert.notEqual(unexplodedCard.querySelector(".btn-delete"), null);
 });
 
 test("xss_is_text_content", () => {

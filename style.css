@@ -21,8 +21,9 @@ body { margin: 0; min-width: 0; padding: env(safe-area-inset-top) 16px calc(40px
 .app-header, main { width: min(100%, 480px); margin-inline: auto; }
 .app-header { padding: 28px 0 18px; border-bottom: 1px solid var(--line); }
 .header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.icon-btn { flex-shrink:0; width:40px; height:40px; margin-top:2px; border:1px solid var(--line); border-radius:50%; background:var(--surface); color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.icon-btn:hover { border-color:var(--flame-light); color:var(--flame); }
+.btn-history { flex-shrink:0; min-height:40px; margin-top:2px; padding:8px 16px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font:inherit; cursor:pointer; white-space:nowrap; }
+.btn-history:hover { border-color:var(--flame-light); color:var(--flame); }
+.history-header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .view { display:none; }
 .view.view--active { display:block; }
 h1, h2, .card-title { font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; }
