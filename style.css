@@ -53,30 +53,34 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 /* 燃えるノート: タイトル自体が右端から焦げていく一行デザイン。
    文字は白抜きで統一し、縁取り(text-shadow)でどちらの背景の上でも読めるようにする。 */
 .fuse-note {
-  position:relative; flex:1 1 auto; min-width:0; height:48px; border-radius:10px; overflow:hidden;
+  position:relative; z-index:2; flex:1 1 auto; min-width:0; min-height:48px; border-radius:10px; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center; gap:2px; padding:8px 14px;
   background:linear-gradient(100deg,var(--flame-light),var(--flame) 70%);
 }
 .fuse-note::before {
-  content:""; position:absolute; inset:0 0 0 var(--burn-edge);
+  content:""; position:absolute; inset:0 0 0 var(--burn-edge); z-index:0;
   background:linear-gradient(90deg,var(--char),#120d08 85%);
   clip-path:polygon(100% 0,4px 0,0 18%,5px 34%,0 50%,4px 66%,0 82%,3px 100%,100% 100%);
 }
 .fuse-note::after {
-  content:""; position:absolute; top:-4px; bottom:-4px; left:var(--burn-edge); width:18px; transform:translateX(-50%);
+  content:""; position:absolute; top:-4px; bottom:-4px; left:var(--burn-edge); width:18px; transform:translateX(-50%); z-index:0;
   background:linear-gradient(90deg,transparent,var(--flame),#fff6b0,var(--flame-light),transparent); filter:blur(3px);
 }
 .fuse-title {
-  position:absolute; inset:0; z-index:2; display:flex; align-items:center; padding:0 14px;
+  position:relative; z-index:2;
   color:var(--title-ink); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   text-shadow:-1px -1px 1px rgba(0,0,0,.6),1px -1px 1px rgba(0,0,0,.6),-1px 1px 1px rgba(0,0,0,.6),1px 1px 1px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.45);
 }
+.fuse-remaining {
+  position:relative; z-index:2;
+  color:var(--title-ink); font-weight:600; font-size:.78rem; font-variant-numeric:tabular-nums;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:-1px -1px 1px rgba(0,0,0,.6),1px -1px 1px rgba(0,0,0,.6),-1px 1px 1px rgba(0,0,0,.6),1px 1px 1px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.45);
+}
+.fuse-remaining.urgent { color:#ffe0d2; font-weight:800; }
 .task-row__actions { flex-shrink:0; align-self:center; }
-.task-row--burning .task-row__meta { flex-basis:100%; order:3; }
-.task-row__meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 9px; min-width:0; margin-top:8px; color:var(--muted); font-size:.78rem; }
 .status-badge { padding:2px 7px; border:1px solid currentColor; border-radius:999px; font-weight:700; white-space:nowrap; }
 .status-badge__text { color:var(--flame); }
-.remaining { font-variant-numeric:tabular-nums; }
-.remaining.urgent { color:var(--danger); font-weight:700; }
 .btn-start, .btn-reignite, .btn-delete { min-width:44px; min-height:44px; padding:8px 12px; border:1px solid var(--flame); border-radius:9px; background:transparent; color:var(--flame); font:inherit; cursor:pointer; white-space:nowrap; }
 .btn-start:hover, .btn-reignite:hover { background:#fff0df; }
 .task-row--unexploded { grid-template-columns:minmax(0,1fr) auto; background:var(--surface-alt); border-color:#c8baa7; }
