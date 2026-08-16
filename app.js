@@ -221,10 +221,11 @@ function renderBurning() {
     const content = document.createElement("div"); content.className = "swipe-content card task-row task-row--burning";
     const note = document.createElement("div"); note.className = "fuse-note";
     const title = document.createElement("span"); title.className = "fuse-title card-title"; title.textContent = item.title;
-    const remaining = document.createElement("span"); remaining.className = "remaining fuse-remaining";
+    note.appendChild(title);
     const progress = document.createElement("progress"); progress.className = "burn-meter sr-only"; progress.min = 0; progress.max = 1; progress.value = 0; progress.setAttribute("aria-label", `燃焼進行度: ${item.title}`);
-    note.append(title, remaining, progress);
-    content.append(note, buildStartControls(item));
+    const meta = document.createElement("div"); meta.className = "task-row__meta card-meta";
+    const remaining = document.createElement("span"); remaining.className = "remaining"; meta.append(remaining, progress);
+    content.append(note, buildStartControls(item), meta);
 
     li.append(actions, content); burningList.appendChild(li);
     initSwipeCell(li);
