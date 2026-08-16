@@ -61,7 +61,7 @@ npm run deploy
 ユーザーの手元に残り続ける。PNGアイコンを追加した際にこの運用を一度経験したため、規約として明文化する。
 
 ### 決定
-配信物(HTML / CSS / JS / アイコン / manifest 等)を追加・変更するたびに、以下を **必ずセットで行う**。現在の明色一行UI昇格に伴う変更は、未リリースの `kichijitsu-v12` にまとめて反映する。次のリリースでは `CACHE_VERSION` を `v13` 以降へ上げる。
+配信物(HTML / CSS / JS / アイコン / manifest 等)を追加・変更するたびに、以下を **必ずセットで行う**。
 
 1. `sw.js` の `CACHE_VERSION` を新しい文字列に上げる(例: `kichijitsu-v5` → `kichijitsu-v6`)。
 2. `sw.js` の `ASSETS` 配列に追加ファイルを漏れなく列挙する。
