@@ -79,13 +79,13 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .remaining.urgent { color:var(--danger); font-weight:700; }
 .btn-start, .btn-reignite, .btn-delete { min-width:44px; min-height:44px; padding:8px 12px; border:1px solid var(--flame); border-radius:9px; background:transparent; color:var(--flame); font:inherit; cursor:pointer; white-space:nowrap; }
 .btn-start:hover, .btn-reignite:hover { background:#fff0df; }
-.task-row--unexploded { grid-template-columns:minmax(0,1fr) auto; background:var(--surface-alt); border-color:#c8baa7; }
-.unexploded-note { min-width:0; }
+.task-row--unexploded { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; background:var(--surface-alt); border-color:#c8baa7; }
+.unexploded-note { min-width:0; flex:1 1 auto; }
 .unexploded-note__title { margin:0; }
 .unexploded-note__title::before { content:"灰"; margin-right:8px; color:var(--ash); font-size:.78em; }
-.unexploded-meta { margin-top:5px; }
+.unexploded-meta { flex-basis:100%; order:3; margin-top:5px; }
 .status-badge--unexploded { color:var(--ash); }
-.unexploded-actions { display:flex; gap:7px; }
+.unexploded-actions { display:flex; gap:7px; flex-shrink:0; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
 .history-summary { display:flex; gap:12px; margin:0 0 16px; }
 .stat { flex:1; padding:14px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
@@ -99,6 +99,6 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .burn-out { animation:burnout 1.6s ease-in forwards; }
 @keyframes burnout { to { opacity:0; transform:translateY(8px); filter:grayscale(1); } }
 @media screen and (min-width: 320px) { .add-form { grid-template-columns:minmax(0,1fr) auto; } }
-@media screen and (max-width: 320px) { body { padding-inline:12px; } .task-row--unexploded { grid-template-columns:minmax(0,1fr); } .unexploded-actions { justify-content:flex-end; } }
+@media screen and (max-width: 320px) { body { padding-inline:12px; } }
 @media screen and (min-width: 600px) { body { padding-inline:24px; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
