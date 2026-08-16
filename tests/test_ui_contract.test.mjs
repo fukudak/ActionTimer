@@ -48,13 +48,23 @@ test("history screen is reached via a header button and a back button", () => {
   assert.match(app, /showView/);
 });
 
-test("burning and unexploded rows expose swipe-to-edit and swipe-to-delete", () => {
+test("burning and unexploded rows expose swipe-to-delete only", () => {
   const css = read("style.css");
   const app = read("app.js");
   assert.match(css, /\.swipe-actions\s*\{/);
-  assert.match(app, /startEditTitle/);
   assert.match(app, /deletePending/);
+  assert.match(app, /deleteUnexploded/);
   assert.match(app, /initSwipeCell/);
+  assert.doesNotMatch(app, /startEditTitle/);
+});
+
+test("history summary shows rate and average as large stats with a clear button", () => {
+  const html = read("index.html");
+  const css = read("style.css");
+  const app = read("app.js");
+  assert.match(html, /id="history-clear"/);
+  assert.match(css, /\.stat__value/);
+  assert.match(app, /clearHistory/);
 });
 
 test("about page describes the light Japanese presentation", () => {

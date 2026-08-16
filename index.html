@@ -17,7 +17,9 @@
         <h1>吉日タイマー</h1>
         <p class="tagline">思い立ったが吉日 — 72時間で導火線は燃え尽きる</p>
       </div>
-      <button type="button" class="btn-history" id="history-toggle">履歴</button>
+      <button type="button" class="icon-btn" id="history-toggle" aria-label="履歴を見る">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      </button>
     </div>
   </header>
   <main>
@@ -44,9 +46,12 @@
       <section id="history-section" class="list-section list-section--history" aria-labelledby="history-heading">
         <div class="history-header-row">
           <h2 id="history-heading" tabindex="-1">履歴</h2>
-          <button type="button" class="btn-history" id="history-back">戻る</button>
+          <button type="button" class="icon-btn" id="history-back" aria-label="今に戻る">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
         </div>
-        <p id="history-summary" class="history-summary" hidden></p>
+        <div id="history-summary" class="history-summary" hidden></div>
+        <button type="button" class="btn-clear-history" id="history-clear" hidden>履歴をクリア</button>
         <ul id="history-list" class="card-list"></ul>
         <p id="history-empty" class="empty-note" hidden>まだ着手した履歴はありません。</p>
       </section>
