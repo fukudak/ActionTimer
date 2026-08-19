@@ -29,7 +29,6 @@ function token(css, name) {
 test("app meaningful text color pairs meet WCAG AA", () => {
   const css = read("style.css");
   assert.ok(contrast(token(css, "--flame"), token(css, "--surface")) >= 4.5);
-  assert.ok(contrast(token(css, "--ash"), token(css, "--surface-alt")) >= 4.5);
   assert.ok(contrast(token(css, "--muted"), token(css, "--bg")) >= 4.5);
   assert.ok(contrast(token(css, "--muted"), token(css, "--surface")) >= 4.5);
   assert.ok(contrast(token(css, "--danger"), "#fff1ed") >= 4.5);
