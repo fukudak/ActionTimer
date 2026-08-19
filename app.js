@@ -259,12 +259,10 @@ function renderUnexploded() {
 
     const content = document.createElement("div"); content.className = "swipe-content card task-row task-row--unexploded unexploded";
     const note = document.createElement("div"); note.className = "unexploded-note"; const title = document.createElement("p"); title.className = "unexploded-note__title card-title"; title.textContent = item.title; note.appendChild(title);
-    const meta = document.createElement("p"); meta.className = "unexploded-meta card-meta"; meta.textContent = `${formatDateTime(item.failedAt)} に燃え尽き`;
-    const badge = document.createElement("span"); badge.className = "status-badge status-badge--unexploded"; badge.textContent = "燃え尽きた"; meta.appendChild(badge);
     const reigniteWrap = document.createElement("div"); reigniteWrap.className = "unexploded-actions";
     const reignite = document.createElement("button"); reignite.type = "button"; reignite.className = "btn-reignite"; reignite.textContent = "再点火"; reignite.setAttribute("aria-label", `「${item.title}」を再点火する`); reignite.addEventListener("click", () => reigniteItem(item.id));
     reigniteWrap.appendChild(reignite);
-    content.append(note, meta, reigniteWrap);
+    content.append(note, reigniteWrap);
 
     li.append(swipeActions, content); unexplodedList.appendChild(li);
     initSwipeCell(li);

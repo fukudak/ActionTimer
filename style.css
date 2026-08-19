@@ -8,7 +8,6 @@
   --line: #d9cdbb;
   --flame: #b6402b;
   --flame-light: #ffb52e;
-  --ash: #625b52;
   --danger: #b9362c;
   --char: #241a10;
   --title-ink: #fff9ef;
@@ -82,9 +81,6 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .task-row--unexploded { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; background:var(--surface-alt); border-color:#c8baa7; }
 .unexploded-note { min-width:0; flex:1 1 auto; }
 .unexploded-note__title { margin:0; }
-.unexploded-note__title::before { content:"灰"; margin-right:8px; color:var(--ash); font-size:.78em; }
-.unexploded-meta { flex-basis:100%; order:3; margin-top:5px; }
-.status-badge--unexploded { color:var(--ash); }
 .unexploded-actions { display:flex; gap:7px; flex-shrink:0; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
 .history-summary { display:flex; gap:12px; margin:0 0 16px; }
