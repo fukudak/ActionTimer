@@ -312,18 +312,21 @@ function clearHistory() {
 document.getElementById("add-form").addEventListener("submit", (e) => { e.preventDefault(); const input = document.getElementById("add-input"); const title = input.value.trim(); if (!title) return; addItem(title); input.value = ""; input.focus(); });
 historyClearBtn.addEventListener("click", clearHistory);
 
-// 今/履歴の切り替え(履歴ボタンで進み、戻るボタンで戻る)
+// 今/履歴の切り替え(同じボタンが履歴表示中は戻るボタンに切り替わる)
 const historyToggle = document.getElementById("history-toggle");
-const historyBack = document.getElementById("history-back");
+const historyToggleIcon = document.getElementById("history-toggle-icon");
 const viewNow = document.getElementById("view-now");
 const viewHistory = document.getElementById("view-history");
+const HISTORY_ICON = '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>';
+const BACK_ICON = '<path d="M15 18l-6-6 6-6"/>';
 function showView(name) {
   const isHistory = name === "history";
   viewNow.classList.toggle("view--active", !isHistory);
   viewHistory.classList.toggle("view--active", isHistory);
+  historyToggle.setAttribute("aria-label", isHistory ? "今に戻る" : "履歴を見る");
+  historyToggleIcon.innerHTML = isHistory ? BACK_ICON : HISTORY_ICON;
 }
-historyToggle.addEventListener("click", () => showView("history"));
-historyBack.addEventListener("click", () => showView("now"));
+historyToggle.addEventListener("click", () => showView(viewHistory.classList.contains("view--active") ? "now" : "history"));
 
 render();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch((e) => console.error("Service Workerの登録に失敗しました。", e));
