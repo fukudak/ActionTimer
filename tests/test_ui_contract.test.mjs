@@ -38,14 +38,15 @@ test("history feature is present with title, elapsed time, and rate", () => {
   assert.match(app, /着手率/);
 });
 
-test("history screen is reached via a header button and a back button", () => {
+test("history screen is reached and left via the same header toggle button", () => {
   const html = read("index.html");
   const app = read("app.js");
   assert.match(html, /id="history-toggle"/);
-  assert.match(html, /id="history-back"/);
+  assert.doesNotMatch(html, /id="history-back"/);
   assert.match(html, /id="view-now"/);
   assert.match(html, /id="view-history"/);
   assert.match(app, /showView/);
+  assert.match(app, /今に戻る/);
 });
 
 test("burning and unexploded rows expose swipe-to-delete only", () => {
