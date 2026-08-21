@@ -58,6 +58,27 @@ test("LP visual contract uses the warm palette, restrained motion, and responsiv
   assert.match(html, /全表示|opacity:\s*1/);
 });
 
+test("LP reveal contract has real section targets without hiding hero or primary CTA", () => {
+  const html = read("about.html");
+  const revealTargets = html.match(/<section\b[^>]*\bclass="[^"]*\breveal\b[^"]*"/g) ?? [];
+  assert.ok(revealTargets.length >= 4, "主要セクションにreveal対象が4件以上必要");
+  assert.match(html, /<section class="hero"/);
+  assert.match(html, /<section class="cta"/);
+  assert.doesNotMatch(html, /<section class="hero[^"]*\breveal/);
+  assert.doesNotMatch(html, /<section class="cta[^"]*\breveal/);
+});
+
+test("LP reveal motion has observer, unsupported-browser, and reduced-motion contracts", () => {
+  const html = read("about.html");
+  assert.match(html, /const revealItems = document\.querySelectorAll\('\.reveal'\)/);
+  assert.match(html, /const showAll = \(\) => revealItems\.forEach/);
+  assert.match(html, /'IntersectionObserver' in window/);
+  assert.match(html, /!window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/);
+  assert.match(html, /else showAll\(\)/);
+  assert.match(html, /\.reveal \{[^}]*opacity:\s*0[^}]*transform:\s*translateY\(12px\)[^}]*transition:\s*opacity 400ms ease, transform 400ms ease/s);
+  assert.match(html, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.reveal \{[^}]*opacity:\s*1[^}]*transform:\s*none/s);
+});
+
 test("service worker cache version advances for the LP release", () => {
   const sw = read("sw.js");
   assert.match(sw, /const CACHE_VERSION = "kichijitsu-v22";/);
