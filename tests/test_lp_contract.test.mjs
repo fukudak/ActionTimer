@@ -28,6 +28,7 @@ test("LP documents the real product flow and local-only boundaries", () => {
     "点火", "残り12時間未満", "点火日時", "着手日時", "再点火", "燃え尽きた",
     "着手率75%", "平均18時間40分", "着手件数 ÷（着手件数＋燃え尽きた件数）",
     "localStorage", "この端末・このブラウザ", "保存サーバーなし", "オフラインPWA",
+    "アプリをオンラインで一度開き、キャッシュ完了後はオフラインでも開けます。",
     "端末間・ブラウザ間同期なし", "サイトデータ削除で登録・履歴は消失", "import/exportなし",
     "履歴全件クリア", "取り消せません",
   ]) assert.match(html, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), token);
@@ -44,6 +45,12 @@ test("LP has the accessible semantic shell and exact CTA labels", () => {
   assert.match(html, /吉日タイマーを開く/);
   assert.doesNotMatch(html, /72時間の法則/);
   assert.doesNotMatch(html, /<svg(?![^>]*aria-hidden="true")/);
+});
+
+test("LP product preview presents the start control as a non-interactive visual", () => {
+  const html = read("about.html");
+  assert.doesNotMatch(html, /<button\b[^>]*\bmock-start\b/);
+  assert.match(html, /<span\s+class="mock-start"\s+aria-hidden="true">着手<\/span>/);
 });
 
 test("LP visual contract uses the warm palette, restrained motion, and responsive constraints", () => {
