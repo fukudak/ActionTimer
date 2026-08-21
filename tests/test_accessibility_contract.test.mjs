@@ -38,7 +38,7 @@ test("LP CTA and secondary text color pairs meet WCAG AA", () => {
   const html = read("about.html");
   const accent = token(html, "--accent");
   const muted = token(html, "--text-muted");
-  assert.ok(contrast("#fff8ee", accent) >= 4.5);
+  assert.ok(contrast(token(html, "--surface"), accent) >= 4.5);
   assert.ok(contrast(muted, token(html, "--bg")) >= 4.5);
 });
 
@@ -46,9 +46,8 @@ test("LP normal text selectors use a qualifying dark text accent", () => {
   const html = read("about.html");
   const textAccent = token(html, "--text-accent");
   assert.ok(contrast(textAccent, token(html, "--bg")) >= 4.5);
-  assert.match(html, /\.hero__eyebrow\s*\{[^}]*color:\s*var\(--text-accent\)/s);
-  assert.match(html, /\.section__label\s*\{[^}]*color:\s*var\(--text-accent\)/s);
-  assert.match(html, /\.step__num\s*\{[^}]*color:\s*var\(--text-accent\)/s);
+  assert.match(html, /\.eyebrow, \.section-label\s*\{[^}]*color:\s*var\(--text-accent\)/s);
+  assert.match(html, /\.timeline h3\s*\{[^}]*font-size:/s);
 });
 
 test("app placeholder explicitly uses an opaque qualifying color", () => {

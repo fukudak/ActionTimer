@@ -1,641 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#fffaf0">
-  <meta name="description" content="思い立ったが吉日。72時間で燃え尽きる導火線が、あなたの先延ばしを炎で断ち切る。吉日タイマーはアカウント不要・通知なし・ただ燃えていくだけのタイマーアプリです。">
-  <title>吉日タイマー — 思い立ったが吉日、72時間の導火線</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F7F3EA">
+  <meta name="description" content="吉日タイマーは、思い立ったことに72時間の区切りをつける行動タイマーです。通知もアカウントもなく、開いたときに残り時間を見せます。">
+  <title>吉日タイマー — 思い立ったことに72時間の区切りをつける</title>
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <style>
     :root {
-      --bg:           #f7f1e6;
-      --card:         #fffaf0;
-      --card-edge:    #d9cdbb;
-      --text:         #29251f;
-      --text-accent:  #7a2e1d;
-      --text-dim:     #746b5f;
-      --text-muted:   #625b52;
-      --accent:       #b6402b;
-      --flame-1:      #ffd54a;
-      --flame-2:      #ff7b1c;
-      --serif: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', Georgia, serif;
-      --sans:  'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+      --canvas: #F7F3EA; --surface: #FFFCF7; --muted: #EFE8DC; --ink: #26231F;
+      --ink2: #655F56; --border: #D8CFC1; --accent: #A63E2B; --hover: #873224;
+      --flame: #D96A2B; --ember: #E3A329; --focus: #7B2F21;
+      --bg: #F7F3EA; --card: #FFFCF7; --text: #26231F; --text-accent: #7B2F21;
+      --text-dim: #655F56; --text-muted: #655F56;
+      --serif: "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      line-height: 1.7;
-      overflow-x: hidden;
-    }
-    .sr-only {
-      position: absolute; width: 1px; height: 1px;
-      padding: 0; margin: -1px; overflow: hidden;
-      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-    }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-    /* Noise */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 0;
-    }
-
-    /* Nav */
-    .lp-nav {
-      position: sticky; top: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 24px;
-      background: rgba(255,250,240,0.92);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .lp-nav__brand {
-      font-family: var(--serif); font-size: 1.1rem; font-weight: 500;
-      letter-spacing: 0.12em; color: var(--text); text-decoration: none;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .lp-nav__brand svg { width: 28px; height: 28px; flex-shrink: 0; }
-    .lp-nav__cta {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 20px; background: var(--accent); color: #fff8ee;
-      font-size: 0.875rem; font-weight: 700; font-family: var(--sans);
-      text-decoration: none; border-radius: 8px;
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    @media (hover: hover) {
-      .lp-nav__cta:hover { background: #a83a25; box-shadow: 0 0 0 3px rgba(201,74,50,0.3); }
-    }
-
-    /* Hero */
-    .hero {
-      position: relative; min-height: 100svh;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 80px 24px 60px; overflow: hidden;
-    }
-    .hero::after {
-      content: ''; position: absolute;
-      bottom: -80px; left: 50%; transform: translateX(-50%);
-      width: 480px; height: 480px;
-      background: radial-gradient(ellipse at center, rgba(255,123,28,0.18) 0%, rgba(201,74,50,0.10) 40%, transparent 70%);
-      pointer-events: none; animation: glowPulse 4s ease-in-out infinite;
-    }
-    @keyframes glowPulse {
-      0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
-      50%       { opacity: 1;   transform: translateX(-50%) scale(1.08); }
-    }
-    .fuse-svg {
-      position: relative; z-index: 1;
-      width: min(340px, 90vw); margin-bottom: 40px;
-    }
-    .fuse-line {
-      stroke-dasharray: 200; stroke-dashoffset: 200;
-      animation: fuseGrow 2.2s ease-out 0.4s forwards;
-    }
-    .fuse-ash {
-      stroke-dasharray: 80; stroke-dashoffset: 80;
-      animation: fuseGrow 0.8s ease-out 2.6s forwards;
-    }
-    @keyframes fuseGrow { to { stroke-dashoffset: 0; } }
-    .flame-body { animation: flicker 0.6s ease-in-out 2.0s infinite alternate; transform-origin: 50% 90%; }
-    .flame-tip  { animation: flicker 0.4s ease-in-out 1.8s infinite alternate-reverse; transform-origin: 50% 80%; }
-    @keyframes flicker {
-      from { transform: scaleX(1) scaleY(1) rotate(-1deg); }
-      to   { transform: scaleX(0.92) scaleY(1.06) rotate(1.5deg); }
-    }
-    .hero__eyebrow {
-      position: relative; z-index: 1;
-      font-size: 0.78rem; letter-spacing: 0.2em; color: var(--text-accent);
-      text-transform: uppercase; margin-bottom: 16px;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
-    .hero__eyebrow::before, .hero__eyebrow::after {
-      content: ''; display: block; width: 32px; height: 1px;
-      background: var(--flame-2); opacity: 0.5;
-    }
-    .hero__title {
-      position: relative; z-index: 1;
-      font-family: var(--serif); font-size: clamp(2.4rem, 7vw, 4.2rem);
-      font-weight: 500; letter-spacing: 0.15em; line-height: 1.25; margin-bottom: 12px;
-    }
-    .hero__title em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--flame-1) 0%, var(--flame-2) 60%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .hero__sub {
-      position: relative; z-index: 1;
-      font-size: clamp(0.95rem, 2.5vw, 1.1rem); color: var(--text-dim);
-      max-width: 520px; margin: 0 auto 40px; line-height: 1.85;
-    }
-    .hero__actions {
-      position: relative; z-index: 1;
-      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-    }
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 32px; background: var(--accent); color: #fff8ee;
-      font-size: 1rem; font-weight: 700; font-family: var(--sans);
-      text-decoration: none; border-radius: 10px;
-      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-      box-shadow: 0 4px 24px rgba(201,74,50,0.35);
-    }
-    @media (hover: hover) {
-      .btn-primary:hover {
-        background: #a83a25;
-        box-shadow: 0 6px 32px rgba(201,74,50,0.5);
-        transform: translateY(-1px);
-      }
-    }
-    .btn-ghost {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 28px; background: transparent; color: var(--text-dim);
-      font-size: 1rem; font-family: var(--sans); text-decoration: none;
-      border: 1px solid var(--card-edge); border-radius: 10px;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    @media (hover: hover) {
-      .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
-    }
-    .scroll-indicator {
-      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
-      z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
-      color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.1em;
-      animation: bounce 2s ease-in-out infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50%       { transform: translateX(-50%) translateY(6px); }
-    }
-    .scroll-indicator svg { opacity: 0.4; }
-
-    /* Sections */
-    .section {
-      position: relative; z-index: 1;
-      padding: 80px 24px; max-width: 900px; margin-inline: auto;
-    }
-    .section + .section { border-top: 1px solid rgba(255,255,255,0.05); }
-    .section__label {
-      font-size: 0.72rem; letter-spacing: 0.22em; color: var(--text-accent);
-      text-transform: uppercase; margin-bottom: 12px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .section__label::before {
-      content: ''; display: block; width: 24px; height: 1px; background: var(--flame-2);
-    }
-    .section__title {
-      font-family: var(--serif); font-size: clamp(1.6rem, 4vw, 2.4rem);
-      font-weight: 500; letter-spacing: 0.1em; line-height: 1.35; margin-bottom: 16px;
-    }
-    .section__body {
-      color: var(--text-dim); font-size: 1rem; max-width: 600px; line-height: 1.85;
-    }
-
-    /* Problem */
-    .problem-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px; margin-top: 48px;
-    }
-    .problem-card {
-      background: var(--card); border: 1px solid var(--card-edge); border-radius: 14px;
-      padding: 28px 24px; transition: border-color 0.25s, transform 0.2s;
-    }
-    @media (hover: hover) {
-      .problem-card:hover { border-color: rgba(201,74,50,0.4); transform: translateY(-2px); }
-    }
-    .problem-card__icon { font-size: 2rem; margin-bottom: 14px; display: block; }
-    .problem-card__title {
-      font-family: var(--serif); font-size: 1.05rem; font-weight: 500; margin-bottom: 8px;
-    }
-    .problem-card__desc { font-size: 0.875rem; color: var(--text-dim); line-height: 1.7; }
-
-    /* Steps */
-    .steps { margin-top: 52px; display: grid; gap: 0; }
-    .step { display: grid; grid-template-columns: 56px 1fr; gap: 0 24px; }
-    .step__num-col { display: flex; flex-direction: column; align-items: center; }
-    .step__num {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: var(--card); border: 1px solid var(--card-edge);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--text-accent);
-      flex-shrink: 0; z-index: 1;
-    }
-    .step__connector {
-      flex: 1; width: 1px;
-      background: linear-gradient(to bottom, var(--card-edge), transparent);
-      margin: 6px 0; min-height: 40px;
-    }
-    .step:last-child .step__connector { display: none; }
-    .step__content { padding: 6px 0 48px; }
-    .step__title {
-      font-family: var(--serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 8px;
-    }
-    .step__desc { font-size: 0.9rem; color: var(--text-dim); line-height: 1.75; max-width: 480px; }
-
-    /* Rules */
-    .rules-list { margin-top: 48px; display: grid; gap: 12px; }
-    .rule-item {
-      display: flex; gap: 16px; align-items: flex-start;
-      background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px;
-      padding: 20px 22px; transition: border-color 0.2s;
-    }
-    @media (hover: hover) {
-      .rule-item:hover { border-color: rgba(201,74,50,0.3); }
-    }
-    .rule-item__icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
-    .rule-item__text { font-size: 0.925rem; color: var(--text-dim); line-height: 1.7; }
-    .rule-item__text strong {
-      font-family: var(--serif); color: var(--text); font-weight: 500;
-      display: block; margin-bottom: 3px; font-size: 1rem;
-    }
-
-    /* Quote */
-    .quote-section {
-      position: relative; z-index: 1; padding: 80px 24px;
-      text-align: center; overflow: hidden;
-      border-top: 1px solid rgba(255,255,255,0.05);
-    }
-    .quote-section::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, transparent, rgba(201,74,50,0.04), transparent);
-      pointer-events: none;
-    }
-    .quote-mark {
-      font-family: var(--serif); font-size: 5rem; line-height: 1;
-      color: var(--accent); opacity: 0.25; display: block; margin-bottom: -20px;
-    }
-    blockquote {
-      font-family: var(--serif); font-size: clamp(1.5rem, 4vw, 2.2rem);
-      font-weight: 500; letter-spacing: 0.18em; line-height: 1.5;
-      max-width: 700px; margin-inline: auto;
-    }
-    blockquote cite {
-      display: block; margin-top: 20px; font-size: 0.82rem; font-style: normal;
-      letter-spacing: 0.12em; color: var(--text-muted); font-family: var(--sans);
-    }
-
-    /* Features */
-    .features-grid {
-      margin-top: 52px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
-    }
-    .feature-chip {
-      background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px;
-      padding: 22px 20px; text-align: center; transition: border-color 0.2s, transform 0.2s;
-    }
-    @media (hover: hover) {
-      .feature-chip:hover { border-color: rgba(255,123,28,0.3); transform: translateY(-2px); }
-    }
-    .feature-chip__icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
-    .feature-chip__label {
-      font-family: var(--serif); font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 4px;
-    }
-    .feature-chip__note { font-size: 0.78rem; color: var(--text-dim); }
-
-    /* CTA */
-    .cta-section {
-      position: relative; z-index: 1; padding: 100px 24px; text-align: center; overflow: hidden;
-      border-top: 1px solid rgba(255,255,255,0.05);
-    }
-    .cta-section::before {
-      content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 600px; height: 300px;
-      background: radial-gradient(ellipse, rgba(201,74,50,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .cta-72 {
-      position: relative; z-index: 1;
-      display: inline-flex; align-items: baseline; gap: 4px;
-      margin: 0 auto 32px; display: flex; justify-content: center;
-    }
-    .cta-72__num {
-      font-family: var(--serif); font-size: clamp(4rem, 12vw, 7rem); font-weight: 500; line-height: 1;
-      background: linear-gradient(135deg, var(--flame-1) 0%, var(--flame-2) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .cta-72__unit {
-      font-family: var(--serif); font-size: clamp(1.2rem, 3vw, 1.8rem); color: var(--text-dim);
-    }
-    .cta-section__title {
-      font-family: var(--serif); font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 500;
-      letter-spacing: 0.15em; margin-bottom: 14px; position: relative; z-index: 1;
-    }
-    .cta-section__sub {
-      color: var(--text-dim); font-size: 0.95rem; margin-bottom: 40px; position: relative; z-index: 1;
-    }
-
-    /* Footer */
-    footer {
-      position: relative; z-index: 1;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      padding: 36px 24px; text-align: center;
-      color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.05em;
-      display: flex; flex-direction: column; gap: 12px; align-items: center;
-    }
-    footer nav { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
-    footer nav a { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
-    @media (hover: hover) { footer nav a:hover { color: var(--text); } }
-
-    /* Fade-in */
-    .fade-in {
-      opacity: 0; transform: translateY(24px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .fade-in.visible { opacity: 1; transform: translateY(0); }
-
-    @media (max-width: 480px) {
-      .hero { padding: 70px 18px 50px; }
-      .section { padding: 60px 18px; }
-      .lp-nav { padding: 12px 16px; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 16px/1.75 var(--sans); overflow-x: hidden; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .site-header { border-bottom: 1px solid var(--border); }
+    .header-inner, .section-inner, .footer-inner { width: min(100% - 32px, 1120px); margin-inline: auto; }
+    .header-inner { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { font: 600 1.05rem var(--serif); letter-spacing: .12em; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+    .brand svg { width: 28px; height: 28px; }
+    .header-link, .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 700; text-decoration: none; }
+    .header-link { padding: 8px 14px; color: var(--accent); border: 1px solid var(--accent); }
+    .button { padding: 10px 18px; border: 1px solid var(--accent); cursor: pointer; }
+    .button--primary { background: var(--accent); color: #FFFCF7; }
+    .button--primary:hover, .header-link:hover { background: var(--hover); color: #FFFCF7; border-color: var(--hover); }
+    .button--quiet { background: transparent; color: var(--accent); }
+    .button--quiet:hover { background: var(--muted); }
+    .hero { padding: 56px 0 48px; }
+    .hero-grid { display: grid; gap: 36px; align-items: center; }
+    .eyebrow, .section-label { margin: 0 0 14px; color: var(--text-accent); font-size: .78rem; font-weight: 700; letter-spacing: .16em; }
+    h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.35; }
+    h1 { max-width: 12em; font-size: clamp(2.1rem, 8vw, 4.5rem); letter-spacing: .04em; }
+    .hero-copy { max-width: 640px; }
+    .hero-copy p { margin: 20px 0 0; color: var(--ink2); max-width: 38em; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .facts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 24px 0 0; padding: 0; list-style: none; color: var(--ink2); font-size: .9rem; }
+    .facts li::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 8px 2px 0; border-radius: 50%; background: var(--ember); }
+    .flame-mark { width: 100%; max-width: 320px; justify-self: center; color: var(--accent); }
+    .flame-mark path { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .section { padding: 72px 0; border-top: 1px solid var(--border); }
+    .section-inner { max-width: 1120px; }
+    .section-heading { max-width: 640px; }
+    .section-heading h2 { font-size: clamp(1.8rem, 5vw, 3rem); }
+    .section-heading p { margin: 16px 0 0; color: var(--ink2); }
+    .preview-layout { display: grid; gap: 32px; align-items: center; }
+    .phone { width: min(100%, 360px); margin-inline: auto; padding: 16px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: 0 18px 44px rgba(38,35,31,.08); }
+    .phone-bar { display: flex; justify-content: space-between; align-items: center; color: var(--ink2); font-size: .75rem; }
+    .phone h3 { margin: 28px 0 12px; font-size: 1.2rem; }
+    .mock-input { display: flex; gap: 8px; padding: 8px 0 20px; border-bottom: 1px solid var(--border); }
+    .mock-input span { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink2); font-size: .85rem; }
+    .mock-input b { display: inline-flex; align-items: center; padding: 8px 12px; border-radius: 6px; background: var(--accent); color: var(--surface); font-size: .85rem; }
+    .mock-task { margin-top: 20px; padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+    .mock-task strong { display: block; font-family: var(--serif); font-size: 1rem; }
+    .mock-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; color: var(--ink2); font-size: .78rem; }
+    .mock-meta b { color: var(--accent); }
+    .mock-start { margin-top: 14px; min-height: 44px; width: 100%; border: 1px solid var(--accent); border-radius: 6px; background: transparent; color: var(--accent); font: inherit; font-weight: 700; }
+    .preview-notes { max-width: 640px; }
+    .preview-notes h3 { margin-top: 24px; font-size: 1.25rem; }
+    .preview-notes p { margin: 8px 0 0; color: var(--ink2); }
+    .timeline { margin: 36px 0 0; padding: 0; list-style: none; border-left: 1px solid var(--border); }
+    .timeline li { position: relative; padding: 0 0 32px 28px; }
+    .timeline li::before { content: ""; position: absolute; top: .55em; left: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--ember); }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline h3 { font-size: 1.2rem; }
+    .timeline p { margin: 5px 0 0; color: var(--ink2); }
+    .urgent { color: var(--accent); font-weight: 700; }
+    .history-box { max-width: 640px; margin-top: 32px; padding: 22px; border: 1px solid var(--border); background: var(--surface); }
+    .stats { display: flex; flex-wrap: wrap; gap: 28px; }
+    .stat strong { display: block; font: 600 clamp(1.8rem, 6vw, 2.8rem)/1 var(--serif); color: var(--accent); }
+    .stat span { color: var(--ink2); font-size: .9rem; }
+    .note { margin-top: 22px; padding: 20px; border-left: 3px solid var(--flame); background: var(--muted); }
+    .note h3 { font-size: 1.15rem; }
+    .note p { margin: 8px 0 0; }
+    .cta { padding: 88px 0; text-align: center; }
+    .cta .section-inner { display: grid; justify-items: center; }
+    .cta-number { margin: 0; color: var(--flame); font: 600 clamp(4rem, 17vw, 8rem)/.9 var(--serif); }
+    .cta h2 { font-size: clamp(1.7rem, 5vw, 3rem); }
+    .cta p { margin: 14px 0 24px; color: var(--ink2); }
+    footer { border-top: 1px solid var(--border); }
+    .footer-inner { padding: 28px 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; color: var(--ink2); font-size: .85rem; }
+    .footer-inner nav { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-inner a { text-decoration: underline; text-underline-offset: 3px; }
+    .reveal { opacity: 0; transform: translateY(12px); transition: opacity 400ms ease, transform 400ms ease; }
+    .reveal.is-visible { opacity: 1; transform: none; }
+    .flame-mark .flame { transform-origin: center bottom; animation: quiet-flame 2.8s ease-in-out infinite alternate; }
+    @keyframes quiet-flame { from { transform: scale(.98) rotate(-1deg); } to { transform: scale(1.02) rotate(1deg); } }
+    @media (min-width: 700px) {
+      .header-inner, .section-inner, .footer-inner { width: min(100% - 48px, 1120px); }
+      .hero { padding: 88px 0 80px; }
+      .hero-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+      .preview-layout { grid-template-columns: 380px minmax(0, 640px); justify-content: space-between; }
+      .section { padding: 120px 0; }
     }
     @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
       *, *::before, *::after { animation: none !important; transition: none !important; }
-      .fade-in { opacity: 1; transform: none; }
+      .reveal { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
-
-  <nav class="lp-nav" aria-label="サイトナビゲーション">
-    <a href="./about.html" class="lp-nav__brand" aria-label="吉日タイマー">
-      <svg viewBox="0 0 512 512" aria-hidden="true" focusable="false">
-        <rect width="512" height="512" rx="96" fill="#1a1410"/>
-        <line x1="330" y1="330" x2="430" y2="330" stroke="#55504a" stroke-width="10" stroke-dasharray="14 18" stroke-linecap="round"/>
-        <path d="M82 330 L310 330" stroke="#c98a3e" stroke-width="22" stroke-linecap="round"/>
-        <path d="M82 330 L310 330" stroke="#8a5a26" stroke-width="22" stroke-linecap="round" stroke-dasharray="16 16"/>
-        <path d="M310 318 C 296 280, 322 252, 318 216 C 352 240, 342 268, 348 276 C 356 264, 358 252, 354 238 C 386 270, 384 306, 366 326 C 350 344, 322 342, 310 318 Z" fill="#ff7b1c"/>
-        <path d="M322 312 C 316 292, 330 278, 330 260 C 350 278, 344 296, 350 304 C 354 314, 346 326, 336 326 C 328 326, 324 320, 322 312 Z" fill="#ffd54a"/>
-      </svg>
-      吉日タイマー
-    </a>
-    <a href="./index.html" class="lp-nav__cta" id="nav-open-app">今すぐ使う</a>
-  </nav>
-
-  <main id="main">
-
-    <!-- Hero -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="./about.html" aria-label="吉日タイマーについて">
+        <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M7 22h12M19 22c-1-5 4-6 2-12 5 4 5 10 1 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 22c-1-3 1-4 1-7 3 3 2 6 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        吉日タイマー
+      </a>
+      <a class="header-link" href="./index.html">アプリを開く</a>
+    </div>
+  </header>
+  <main>
     <section class="hero" aria-labelledby="hero-title">
-      <svg class="fuse-svg" viewBox="0 0 340 120" aria-hidden="true" focusable="false">
-        <line class="fuse-ash" x1="0" y1="70" x2="70" y2="70"
-              stroke="#55504a" stroke-width="6" stroke-dasharray="10 14" stroke-linecap="round"/>
-        <path class="fuse-line"
-              d="M70 70 L130 70"
-              fill="none" stroke="#c98a3e" stroke-width="12" stroke-linecap="round"/>
-        <path class="fuse-line"
-              d="M70 70 L130 70"
-              fill="none" stroke="#8a5a26" stroke-width="12" stroke-linecap="round"
-              stroke-dasharray="12 12" style="animation-delay:0.1s"/>
-        <g class="flame-body">
-          <path d="M130 60 C 118 28,148 4,144 0 C 174 20,162 48,168 58 C 176 46,178 32,174 18 C 200 46,200 76,186 92 C 172 108,146 106,130 80 Z" fill="#ff7b1c"/>
-        </g>
-        <g class="flame-tip">
-          <path d="M142 74 C 136 54,150 40,150 22 C 166 40,160 58,166 68 C 170 78,162 90,152 90 C 144 90,140 84,142 74 Z" fill="#ffd54a"/>
-        </g>
-      </svg>
-
-      <p class="hero__eyebrow">72時間の法則</p>
-
-      <h1 class="hero__title" id="hero-title">
-        思い立ったが<em>吉日</em><br>
-        導火線は、燃えている
-      </h1>
-
-      <p class="hero__sub">
-        やろうと思い立ったことを登録すると、72時間の導火線が燃え始める。<br>
-        期限内に着手すれば確認なしで着手履歴に記録され、燃え尽きれば「燃え尽きた」として自動保存される。<br>
-        通知もアカウントも要らない。ただ、炎を見るだけ。
-      </p>
-
-      <div class="hero__actions">
-        <a href="./index.html" class="btn-primary" id="hero-cta-primary">🔥 今すぐ点火する</a>
-        <a href="#how-it-works" class="btn-ghost" id="hero-cta-secondary">使い方を見る</a>
-      </div>
-
-      <div class="scroll-indicator" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        スクロール
+      <div class="section-inner hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">72時間の行動タイマー</p>
+          <h1 id="hero-title">思い立ったことに、72時間の火をつける。</h1>
+          <p>吉日タイマーは、思い立ったことに72時間の区切りをつけるタイマーです。72時間は固定。通知はせず、アプリを開いたときに残り時間と燃焼の様子を見せます。</p>
+          <div class="hero-actions"><a class="button button--primary" href="./index.html">今すぐ点火する</a><a class="button button--quiet" href="#how-it-works">仕組みを見る</a></div>
+          <ul class="facts" aria-label="吉日タイマーの事実"><li>72時間固定</li><li>通知なし</li><li>アカウント不要</li></ul>
+        </div>
+        <svg class="flame-mark" viewBox="0 0 320 220" aria-hidden="true" focusable="false"><path d="M42 164h145M90 164c44-1 50-37 35-61 37 16 47 48 27 61M174 164c-7-27 13-37 9-67 30 23 30 59 5 67"/><path class="flame" d="M198 164c-13-34 14-47 10-89 42 34 42 72 7 89"/></svg>
       </div>
     </section>
 
-    <!-- Quote -->
-    <section class="quote-section" aria-labelledby="quote-heading">
-      <h2 id="quote-heading" class="sr-only">コンセプト</h2>
-      <span class="quote-mark" aria-hidden="true">〝</span>
-      <blockquote>
-        思い立ったが吉日
-        <cite>— 日本のことわざ</cite>
-      </blockquote>
-    </section>
-
-    <!-- Problem -->
-    <section class="section" aria-labelledby="problem-heading">
-      <p class="section__label">問題</p>
-      <h2 class="section__title" id="problem-heading">
-        なぜ「やろう」は<br>消えてしまうのか
-      </h2>
-      <p class="section__body">
-        心理学の研究によると、何かをやろうと思い立った瞬間から72時間以内に着手しないと、実行率が激減します。先延ばしは悪意ではなく、「忘却」が原因です。
-      </p>
-      <div class="problem-grid">
-        <article class="problem-card fade-in">
-          <span class="problem-card__icon" aria-hidden="true">🌫️</span>
-          <h3 class="problem-card__title">思考の揮発</h3>
-          <p class="problem-card__desc">「あとでやろう」は「決してやらない」と等しい。72時間を過ぎると着手意欲は急速に薄れる。</p>
-        </article>
-        <article class="problem-card fade-in">
-          <span class="problem-card__icon" aria-hidden="true">🔔</span>
-          <h3 class="problem-card__title">通知疲れ</h3>
-          <p class="problem-card__desc">リマインダーは多すぎると無視される。「見たとき」に燃えている状態を見せるだけで十分。</p>
-        </article>
-        <article class="problem-card fade-in">
-          <span class="problem-card__icon" aria-hidden="true">📋</span>
-          <h3 class="problem-card__title">ToDoの肥大化</h3>
-          <p class="problem-card__desc">増え続けるリストは罪悪感を生む。燃え尽きた項目は自動的に「燃え尽きた」へ移動し、再点火か削除を明示的に選ぶまで残る。</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="section" id="how-it-works" aria-labelledby="howto-heading">
-      <p class="section__label">使い方</p>
-      <h2 class="section__title" id="howto-heading">シンプルに、燃やす</h2>
-      <p class="section__body">操作は4ステップ。管理画面もカテゴリも優先度も存在しない。</p>
-      <ol class="steps" aria-label="使い方のステップ">
-        <li class="step fade-in">
-          <div class="step__num-col" aria-hidden="true">
-            <span class="step__num">01</span>
-            <span class="step__connector"></span>
+    <section class="section" aria-labelledby="experience-title">
+      <div class="section-inner">
+        <div class="section-heading"><p class="section-label">製品体験</p><h2 id="experience-title">時間が減るほど、導火線も短くなる。</h2><p>実際の画面と同じ流れで、残り時間を見て、着手する。余計な操作はありません。</p></div>
+        <div class="preview-layout">
+          <div class="phone" aria-label="吉日タイマーの製品プレビュー">
+            <div class="phone-bar"><span>吉日タイマー</span><span>履歴</span></div>
+            <h3>燃えている</h3>
+            <div class="mock-input"><span>思い立ったことを書く</span><b>点火</b></div>
+            <div class="mock-task"><strong>歯医者を予約する</strong><div class="mock-meta"><b>残り 51時間24分</b><span>燃焼中</span></div><button class="mock-start" type="button">着手</button><small>左へスワイプして削除</small></div>
           </div>
-          <div class="step__content">
-            <h3 class="step__title">思い立ったことを書く</h3>
-            <p class="step__desc">テキストを入力して「点火」を押すだけ。その瞬間から72時間のカウントダウンが始まる。タイトルは最大100文字。分類や期日の入力は不要。</p>
-          </div>
-        </li>
-        <li class="step fade-in">
-          <div class="step__num-col" aria-hidden="true">
-            <span class="step__num">02</span>
-            <span class="step__connector"></span>
-          </div>
-          <div class="step__content">
-            <h3 class="step__title">導火線が燃えていくのを見る</h3>
-            <p class="step__desc">アプリを開くたびに、燃え続ける付箋と導火線が残り時間を教える。通知は送らない。見るか見ないかは、あなた次第。</p>
-          </div>
-        </li>
-        <li class="step fade-in">
-          <div class="step__num-col" aria-hidden="true">
-            <span class="step__num">03</span>
-            <span class="step__connector"></span>
-          </div>
-          <div class="step__content">
-            <h3 class="step__title">着手したら「着手」ボタンを押す</h3>
-            <p class="step__desc">確認画面なし、追加入力なし。ボタンを押した瞬間にリストから消え、タイトルと日時だけが着手履歴に記録される。理由やメモの入力は求めない。</p>
-          </div>
-        </li>
-        <li class="step fade-in">
-          <div class="step__num-col" aria-hidden="true">
-            <span class="step__num">04</span>
-            <span class="step__connector"></span>
-          </div>
-          <div class="step__content">
-            <h3 class="step__title">燃え尽きたら「燃え尽きた」として自動保存</h3>
-            <p class="step__desc">72時間を過ぎると、その項目は燃え尽きアニメーションとともに自動的に燃え尽きたリストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除すれば完全に消える。</p>
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <!-- Rules -->
-    <section class="section" aria-labelledby="rules-heading">
-      <p class="section__label">設計原則</p>
-      <h2 class="section__title" id="rules-heading">変えられないルール</h2>
-      <p class="section__body">緊張感こそがこのアプリの本体です。だから、例外を作らない。</p>
-      <ul class="rules-list">
-        <li class="rule-item fade-in">
-          <span class="rule-item__icon" aria-hidden="true">⏱️</span>
-          <div class="rule-item__text">
-            <strong>期限は72時間固定</strong>
-            延長も一時停止もできない。炎を止める手段は存在しない。
-          </div>
-        </li>
-        <li class="rule-item fade-in">
-          <span class="rule-item__icon" aria-hidden="true">🚫</span>
-          <div class="rule-item__text">
-            <strong>着手したら確認なし・追加入力なし</strong>
-            「着手」ボタンを押した瞬間、確認ダイアログなしでリストから消える。タイトルと日時だけが着手履歴に記録され、理由やメモは求めない。
-          </div>
-        </li>
-        <li class="rule-item fade-in">
-          <span class="rule-item__icon" aria-hidden="true">💣</span>
-          <div class="rule-item__text">
-            <strong>燃え尽きたら自動的に「燃え尽きた」へ</strong>
-            期限を過ぎると燃え尽きアニメーションが流れ、自動で燃え尽きたリストへ移動する。再点火すれば今この瞬間から新しい72時間が始まる。削除は確認後に実行される。
-          </div>
-        </li>
-        <li class="rule-item fade-in">
-          <span class="rule-item__icon" aria-hidden="true">🔇</span>
-          <div class="rule-item__text">
-            <strong>通知しない</strong>
-            急かすのはアプリの仕事ではない。開いたときに燃えているものを見せるだけ。
-          </div>
-        </li>
-        <li class="rule-item fade-in">
-          <span class="rule-item__icon" aria-hidden="true">🔒</span>
-          <div class="rule-item__text">
-            <strong>アカウント不要・サーバーなし</strong>
-            データはすべて端末のlocalStorageに保存。登録もログインも不要。
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Features -->
-    <section class="section" aria-labelledby="features-heading">
-      <p class="section__label">特徴</p>
-      <h2 class="section__title" id="features-heading">余分なものは何もない</h2>
-      <div class="features-grid">
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">📱</span>
-          <p class="feature-chip__label">PWA対応</p>
-          <p class="feature-chip__note">ホーム画面に追加してネイティブ感覚で使用</p>
-        </div>
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">✈️</span>
-          <p class="feature-chip__label">オフライン動作</p>
-          <p class="feature-chip__note">ネット不要。いつでも開けば導火線が燃えている</p>
-        </div>
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">🎨</span>
-          <p class="feature-chip__label">明るい和風配色</p>
-          <p class="feature-chip__note">生成りの紙面に炎色の導火線</p>
-        </div>
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">⚡</span>
-          <p class="feature-chip__label">軽量・高速</p>
-          <p class="feature-chip__note">依存ライブラリなし。Vanilla JS のみ</p>
-        </div>
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">♿</span>
-          <p class="feature-chip__label">アクセシブル</p>
-          <p class="feature-chip__note">スクリーンリーダー・キーボード対応</p>
-        </div>
-        <div class="feature-chip fade-in">
-          <span class="feature-chip__icon" aria-hidden="true">🆓</span>
-          <p class="feature-chip__label">完全無料</p>
-          <p class="feature-chip__note">広告なし。課金なし。ただ燃やすだけ</p>
+          <div class="preview-notes"><h3>開いたときに、いまの状態がわかる</h3><p>残り時間は登録時刻から計算されます。アプリを閉じていても、次に開いたときの残り時間を表示します。通知で急かすことはありません。</p><h3>着手したら、履歴へ</h3><p>「着手」を押すと、タイトル・点火日時・着手日時を履歴に保存して、燃焼中の一覧から消えます。</p></div>
         </div>
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="cta-section" aria-labelledby="cta-heading">
-      <div class="cta-72" aria-label="72時間">
-        <span class="cta-72__num">72</span>
-        <span class="cta-72__unit">時間</span>
+    <section class="section" id="how-it-works" aria-labelledby="how-title">
+      <div class="section-inner"><div class="section-heading"><p class="section-label">使い方</p><h2 id="how-title">火をつけて、見届ける。</h2></div>
+        <ol class="timeline"><li><h3>点火</h3><p>思い立ったことを書いて点火。登録した瞬間から、72時間のカウントダウンが始まります。</p></li><li><h3 class="urgent">残り12時間未満</h3><p>残り時間が12時間未満になると、画面上で急ぎの状態を強調します。通知はありません。</p></li><li><h3>着手</h3><p>着手ボタンを押すと、タイトル・点火日時・着手日時を履歴保存。追加入力はありません。</p></li><li><h3>燃え尽きた</h3><p>72時間後は「燃え尽きた」として残ります。再点火で新しい72時間を始めるか、確認後に削除します。</p></li></ol>
       </div>
-      <h2 class="cta-section__title" id="cta-heading">
-        あなたの導火線は、<br>まだ燃えている
-      </h2>
-      <p class="cta-section__sub">今この瞬間が、吉日です。</p>
-      <a href="./index.html" class="btn-primary" id="final-cta">🔥 今すぐ点火する</a>
     </section>
 
+    <section class="section" aria-labelledby="history-title">
+      <div class="section-inner"><div class="section-heading"><p class="section-label">履歴</p><h2 id="history-title">急かさない。でも、振り返れる。</h2><p>着手した項目は履歴に残り、着手のペースをあとから確認できます。</p></div>
+        <div class="history-box"><div class="stats"><div class="stat"><strong>75%</strong><span>着手率</span></div><div class="stat"><strong>18時間40分</strong><span>平均着手時間</span></div></div><p>表示例は着手率75%、平均18時間40分。着手率75%は、着手件数 ÷（着手件数＋燃え尽きた件数）で計算します。履歴全件クリアは不可逆です。この操作は取り消せません。</p></div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="boundaries-title">
+      <div class="section-inner"><div class="section-heading"><p class="section-label">端末内完結</p><h2 id="boundaries-title">あなたの端末だけで動く。</h2><p>localStorageに保存し、この端末・このブラウザの中で完結します。アカウント不要、保存サーバーなし。初回読込とキャッシュ後はオフラインPWAとして開けます。通知もありません。</p></div>
+        <div class="note"><h3>大切なこと</h3><p>端末間・ブラウザ間同期なし。端末変更、ブラウザのデータ削除、サイトデータ削除で登録・履歴は消失します。import/exportなし。燃焼中・燃え尽きた項目は左へスワイプして削除し、確認後に削除します。再点火できるのは燃え尽きた項目だけです。</p></div>
+      </div>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title"><div class="section-inner"><p class="cta-number">72時間</p><h2 id="cta-title">その「やろう」に、今、火をつける。</h2><p>思い立った瞬間を、最初の一歩に変える。</p><a class="button button--primary" href="./index.html">吉日タイマーを開く</a></div></section>
   </main>
-
-  <footer>
-    <nav aria-label="フッターナビゲーション">
-      <a href="./index.html">アプリを開く</a>
-      <a href="./about.html">このアプリについて</a>
-    </nav>
-    <p>© 2026 吉日タイマー — 思い立ったが吉日、72時間の法則</p>
-  </footer>
-
+  <footer><div class="footer-inner"><span>吉日タイマー</span><nav aria-label="フッターナビゲーション"><a href="./index.html">アプリを開く</a><a href="./about.html">このページについて</a></nav></div></footer>
   <script>
-    const fadeEls = document.querySelectorAll('.fade-in');
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry, i) => {
-            if (entry.isIntersecting) {
-              const delay = (i % 4) * 80;
-              setTimeout(() => entry.target.classList.add('visible'), delay);
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
-      );
-      fadeEls.forEach(el => observer.observe(el));
-    } else {
-      fadeEls.forEach(el => el.classList.add('visible'));
-    }
+    const revealItems = document.querySelectorAll('.reveal');
+    const showAll = () => revealItems.forEach((item) => item.classList.add('is-visible'));
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } }), { threshold: 0.1 });
+      revealItems.forEach((item) => observer.observe(item));
+    } else showAll();
   </script>
 </body>
 </html>

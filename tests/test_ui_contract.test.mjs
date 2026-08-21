@@ -70,7 +70,7 @@ test("history summary shows rate and average as large stats with a clear button"
 
 test("about page describes the light Japanese presentation", () => {
   const about = read("about.html");
-  assert.match(about, /#fffaf0/);
+  assert.match(about, /#FFFCF7/i);
   assert.doesNotMatch(about, /ダークテーマ|漆黒の背景/);
   assert.match(about, /prefers-reduced-motion/);
 });

@@ -1,0 +1,64 @@
+"use strict";
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const root = new URL("..", import.meta.url);
+const read = (name) => readFileSync(new URL(name, root), "utf8");
+
+const forbidden = [
+  "心理学の研究", "実行率が激減", "忘却が原因", "完全無料", "広告なし", "課金なし",
+  "ネイティブ感覚", "🔔", "🔥", "📱", "🌫️", "📋", "🚫", "💣", "🔇", "🔒",
+];
+
+test("LP states the 72-hour product promise without unsupported claims", () => {
+  const html = read("about.html");
+  assert.match(html, /思い立ったことに72時間の区切りをつける/);
+  assert.match(html, /72時間の行動タイマー/);
+  assert.match(html, /思い立ったことに、72時間の火をつける。/);
+  assert.match(html, /通知なし/);
+  assert.match(html, /アカウント不要/);
+  for (const token of forbidden) assert.equal(html.includes(token), false, token);
+});
+
+test("LP documents the real product flow and local-only boundaries", () => {
+  const html = read("about.html");
+  for (const token of [
+    "歯医者を予約する", "残り 51時間24分", "着手", "左へスワイプして削除",
+    "点火", "残り12時間未満", "点火日時", "着手日時", "再点火", "燃え尽きた",
+    "着手率75%", "平均18時間40分", "着手件数 ÷（着手件数＋燃え尽きた件数）",
+    "localStorage", "この端末・このブラウザ", "保存サーバーなし", "オフラインPWA",
+    "端末間・ブラウザ間同期なし", "サイトデータ削除で登録・履歴は消失", "import/exportなし",
+    "履歴全件クリア", "取り消せません",
+  ]) assert.match(html, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), token);
+});
+
+test("LP has the accessible semantic shell and exact CTA labels", () => {
+  const html = read("about.html");
+  assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(html, /<nav\b/);
+  assert.match(html, /<main\b/);
+  assert.match(html, /<footer\b/);
+  assert.match(html, /今すぐ点火する/);
+  assert.match(html, /仕組みを見る/);
+  assert.match(html, /吉日タイマーを開く/);
+  assert.doesNotMatch(html, /72時間の法則/);
+  assert.doesNotMatch(html, /<svg(?![^>]*aria-hidden="true")/);
+});
+
+test("LP visual contract uses the warm palette, restrained motion, and responsive constraints", () => {
+  const html = read("about.html");
+  for (const token of ["#F7F3EA", "#FFFCF7", "#EFE8DC", "#26231F", "#655F56", "#D8CFC1", "#A63E2B", "#873224", "#D96A2B", "#E3A329", "#7B2F21", "1120px", "640px", "72px", "120px", "44px", "prefers-reduced-motion"]) {
+    assert.ok(html.toUpperCase().includes(token.toUpperCase()), token);
+  }
+  assert.doesNotMatch(html, /100svh|100vh/);
+  assert.doesNotMatch(html, /backdrop-filter|feTurbulence|radial-gradient|linear-gradient/);
+  assert.match(html, /animation-duration:\s*2\.4s|animation:\s*[^;]*2\.[4-9]s/);
+  assert.match(html, /IntersectionObserver/);
+  assert.match(html, /全表示|opacity:\s*1/);
+});
+
+test("service worker cache version advances for the LP release", () => {
+  const sw = read("sw.js");
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v22";/);
+});
