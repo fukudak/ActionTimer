@@ -34,6 +34,11 @@ test("app meaningful text color pairs meet WCAG AA", () => {
   assert.ok(contrast(token(css, "--danger"), "#fff1ed") >= 4.5);
 });
 
+test("LP links provide a 44px minimum target with centered inline-flex content", () => {
+  const html = read("about.html");
+  assert.match(html, /\.brand, \.footer-inner a\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*min-height:\s*44px/s);
+});
+
 test("LP CTA and secondary text color pairs meet WCAG AA", () => {
   const html = read("about.html");
   const accent = token(html, "--accent");
