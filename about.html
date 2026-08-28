@@ -66,6 +66,7 @@
     .mock-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; color: var(--ink2); font-size: .78rem; }
     .mock-meta b { color: var(--accent); }
     .mock-start { display: flex; align-items: center; justify-content: center; margin-top: 14px; min-height: 44px; width: 100%; border: 1px solid var(--accent); border-radius: 6px; background: transparent; color: var(--accent); font: inherit; font-weight: 700; }
+    .preview-caption { display: block; margin-top: 10px; color: var(--ink2); font-size: .75rem; }
     .preview-notes { max-width: 640px; }
     .preview-notes h3 { margin-top: 24px; font-size: 1.25rem; }
     .preview-notes p { margin: 8px 0 0; color: var(--ink2); }
@@ -126,7 +127,7 @@
         <div class="hero-copy">
           <p class="eyebrow">72時間の行動タイマー</p>
           <h1 id="hero-title">思い立ったことに、72時間の火をつける。</h1>
-          <p>吉日タイマーは、思い立ったことに72時間の区切りをつけるタイマーです。72時間は固定。通知はせず、アプリを開いたときに残り時間と燃焼の様子を見せます。</p>
+          <p>吉日タイマーは、思い立ったことに72時間の区切りをつけるタイマーです。72時間は固定で、延長や一時停止はできません。通知はせず、アプリを開いたときに残り時間と燃焼の様子を見せます。</p>
           <div class="hero-actions"><a class="button button--primary" href="/">今すぐ点火する</a><a class="button button--quiet" href="#how-it-works">仕組みを見る</a></div>
           <ul class="facts" aria-label="吉日タイマーの事実"><li>72時間固定</li><li>通知なし</li><li>アカウント不要</li></ul>
         </div>
@@ -136,13 +137,13 @@
 
     <section class="section reveal" aria-labelledby="experience-title">
       <div class="section-inner">
-        <div class="section-heading"><p class="section-label">製品体験</p><h2 id="experience-title">時間が減るほど、導火線も短くなる。</h2><p>実際の画面と同じ流れで、残り時間を見て、着手する。余計な操作はありません。</p></div>
+        <div class="section-heading"><p class="section-label">製品体験</p><h2 id="experience-title">時間が減るほど、導火線も短くなる。</h2><p>実際の画面と同じ流れで、残り時間を確認し、「着手」を押すだけ。理由やメモの追加入力はありません。</p></div>
         <div class="preview-layout">
           <div class="phone" aria-label="吉日タイマーの製品プレビュー">
             <div class="phone-bar"><span>吉日タイマー</span><span>履歴</span></div>
             <h3>燃えている</h3>
             <div class="mock-input"><span>思い立ったことを書く</span><b>点火</b></div>
-            <div class="mock-task"><strong>歯医者を予約する</strong><div class="mock-meta"><b>残り 51時間24分</b><span>燃焼中</span></div><span class="mock-start" aria-hidden="true">着手</span><small>左へスワイプして削除</small></div>
+            <div class="mock-task"><strong>歯医者を予約する</strong><div class="mock-meta"><b>残り 51時間24分</b><span>燃焼中</span></div><span class="mock-start" aria-hidden="true">着手</span><small>左へスワイプして削除</small></div><small class="preview-caption">※タイトルと残り時間は表示例です。</small>
           </div>
           <div class="preview-notes"><h3>開いたときに、いまの状態がわかる</h3><p>残り時間は登録時刻から計算されます。アプリを閉じていても、次に開いたときの残り時間を表示します。通知で急かすことはありません。</p><h3>着手したら、履歴へ</h3><p>「着手」を押すと、タイトル・点火日時・着手日時を履歴に保存して、燃焼中の一覧から消えます。</p></div>
         </div>
@@ -151,18 +152,18 @@
 
     <section class="section reveal" id="how-it-works" aria-labelledby="how-title">
       <div class="section-inner"><div class="section-heading"><p class="section-label">使い方</p><h2 id="how-title">火をつけて、見届ける。</h2></div>
-        <ol class="timeline"><li><h3>点火</h3><p>思い立ったことを書いて点火。登録した瞬間から、72時間のカウントダウンが始まります。</p></li><li><h3 class="urgent">残り12時間未満</h3><p>残り時間が12時間未満になると、画面上で急ぎの状態を強調します。通知はありません。</p></li><li><h3>着手</h3><p>着手ボタンを押すと、タイトル・点火日時・着手日時を履歴保存。追加入力はありません。</p></li><li><h3>燃え尽きた</h3><p>72時間後は「燃え尽きた」として残ります。再点火で新しい72時間を始めるか、確認後に削除します。</p></li></ol>
+        <ol class="timeline"><li><h3>点火</h3><p>思い立ったことを書いて点火。登録した瞬間から、72時間のカウントダウンが始まります。</p></li><li><h3 class="urgent">残り12時間未満</h3><p>残り時間が12時間未満になると、残り時間の文字を赤く太字で表示します。通知はありません。</p></li><li><h3>着手</h3><p>着手ボタンを押すと、タイトル・点火日時・着手日時を履歴保存。追加入力はありません。</p></li><li><h3>燃え尽きた</h3><p>72時間後は「燃え尽きた」として残ります。再点火で新しい72時間を始めるか、確認後に削除します。</p></li></ol>
       </div>
     </section>
 
     <section class="section reveal" aria-labelledby="history-title">
       <div class="section-inner"><div class="section-heading"><p class="section-label">履歴</p><h2 id="history-title">急かさない。でも、振り返れる。</h2><p>着手した項目は履歴に残り、着手のペースをあとから確認できます。</p></div>
-        <div class="history-box"><div class="stats"><div class="stat"><strong>75%</strong><span>着手率</span></div><div class="stat"><strong>18時間40分</strong><span>平均着手時間</span></div></div><p>表示例は着手率75%、平均18時間40分。着手率75%は、着手件数 ÷（着手件数＋燃え尽きた件数）で計算します。履歴全件クリアは不可逆です。この操作は取り消せません。</p></div>
+        <div class="history-box"><div class="stats"><div class="stat"><strong>75%</strong><span>着手率</span></div><div class="stat"><strong>18時間40分</strong><span>平均着手時間</span></div></div><p>表示例は着手率75%、平均18時間40分。着手率75%は、着手件数 ÷（着手件数＋燃え尽きた件数）で計算します。平均着手時間は、着手した各項目の点火から着手までの時間の平均です。履歴全件クリアは不可逆です。この操作は取り消せません。</p></div>
       </div>
     </section>
 
     <section class="section reveal" aria-labelledby="boundaries-title">
-      <div class="section-inner"><div class="section-heading"><p class="section-label">端末内完結</p><h2 id="boundaries-title">あなたの端末だけで動く。</h2><p>localStorageに保存し、この端末・このブラウザの中で完結します。アカウント不要、保存サーバーなし。アプリをオンラインで一度開き、キャッシュ完了後はオフラインでも開けます。オフラインPWAとして利用できます。通知もありません。</p></div>
+      <div class="section-inner"><div class="section-heading"><p class="section-label">端末内完結</p><h2 id="boundaries-title">登録内容と履歴は、あなたの端末内だけに保存。</h2><p>localStorageに保存し、この端末・このブラウザの中で完結します。アカウント不要、保存サーバーなし。アプリをオンラインで一度開き、キャッシュ完了後はオフラインでも開けます。オフラインPWAとして利用できます。通知もありません。</p></div>
         <div class="note"><h3>大切なこと</h3><p>端末間・ブラウザ間同期なし。端末変更、ブラウザのデータ削除、サイトデータ削除で登録・履歴は消失します。import/exportなし。燃焼中・燃え尽きた項目は左へスワイプして削除し、確認後に削除します。再点火できるのは燃え尽きた項目だけです。</p></div>
       </div>
     </section>

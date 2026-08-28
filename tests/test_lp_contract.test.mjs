@@ -21,6 +21,23 @@ test("LP states the 72-hour product promise without unsupported claims", () => {
   for (const token of forbidden) assert.equal(html.includes(token), false, token);
 });
 
+test("LP copy states the fixed deadline and input-free start flow", () => {
+  const html = read("about.html");
+  assert.match(html, /72時間は固定で、延長や一時停止はできません。/);
+  assert.match(html, /残り時間を確認し、「着手」を押すだけ。理由やメモの追加入力はありません。/);
+  assert.doesNotMatch(html, /72時間は固定。/);
+  assert.doesNotMatch(html, /余計な操作はありません。/);
+});
+
+test("LP preview and explanations disclose examples, urgency, storage, and averages", () => {
+  const html = read("about.html");
+  assert.match(html, /※タイトルと残り時間は表示例です。/);
+  assert.match(html, /残り時間の文字を赤く太字で表示します。/);
+  assert.match(html, /登録内容と履歴は、あなたの端末内だけに保存。/);
+  assert.match(html, /平均着手時間は、着手した各項目の点火から着手までの時間の平均です。/);
+  assert.doesNotMatch(html, /あなたの端末だけで動く。/);
+});
+
 test("LP documents the real product flow and local-only boundaries", () => {
   const html = read("about.html");
   for (const token of [
@@ -104,5 +121,5 @@ test("LP reveal motion has observer, unsupported-browser, and reduced-motion con
 
 test("service worker cache version advances for the LP release", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v25";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v26";/);
 });

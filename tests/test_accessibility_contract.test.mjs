@@ -55,6 +55,14 @@ test("LP normal text selectors use a qualifying dark text accent", () => {
   assert.match(html, /\.timeline h3\s*\{[^}]*font-size:/s);
 });
 
+test("LP preview disclosure remains readable as small text", () => {
+  const html = read("about.html");
+  const surface = token(html, "--surface");
+  const muted = token(html, "--ink2");
+  assert.match(html, /\.preview-caption\s*\{[^}]*color:\s*var\(--ink2\)[^}]*font-size:\s*\.75rem/s);
+  assert.ok(contrast(muted, surface) >= 4.5, "preview caption must meet WCAG AA");
+});
+
 test("app placeholder explicitly uses an opaque qualifying color", () => {
   const css = read("style.css");
   const placeholder = token(css, "--placeholder");
