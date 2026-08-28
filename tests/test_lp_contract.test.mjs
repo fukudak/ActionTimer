@@ -47,6 +47,22 @@ test("LP has the accessible semantic shell and exact CTA labels", () => {
   assert.doesNotMatch(html, /<svg(?![^>]*aria-hidden="true")/);
 });
 
+test("LP uses canonical app and about routes for every navigation link", () => {
+  const html = read("about.html");
+  assert.match(html, /<a class="brand" href="\/about"[\s\S]*?吉日タイマー/);
+  assert.deepEqual(
+    [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([^<]+)</g)].map((match) => [match[2].trim(), match[1]]).filter(([label]) => ["アプリを開く", "今すぐ点火する", "吉日タイマーを開く", "このページについて"].includes(label)),
+    [
+      ["アプリを開く", "/"],
+      ["今すぐ点火する", "/"],
+      ["吉日タイマーを開く", "/"],
+      ["アプリを開く", "/"],
+      ["このページについて", "/about"],
+    ]
+  );
+  assert.doesNotMatch(html, /href="\.\/(?:index|about)\.html"/);
+});
+
 test("LP product preview presents the start control as a non-interactive visual", () => {
   const html = read("about.html");
   assert.doesNotMatch(html, /<button\b[^>]*\bmock-start\b/);
@@ -88,5 +104,5 @@ test("LP reveal motion has observer, unsupported-browser, and reduced-motion con
 
 test("service worker cache version advances for the LP release", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v22";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v23";/);
 });

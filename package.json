@@ -2,7 +2,7 @@
   "name": "kichijitsu-timer",
   "private": true,
   "scripts": {
-    "build": "if [ -n \"${ACTIONTIMER_DIST:-}\" ]; then out=\"$ACTIONTIMER_DIST\"; else out=dist; rm -rf \"$out\"; fi; mkdir -p \"$out/icons\" && cp index.html style.css app.js sw.js manifest.webmanifest about.html \"$out/\" && cp icons/icon.svg icons/icon-512.png icons/apple-touch-icon.png \"$out/icons\"",
+    "build": "if [ -n \"${ACTIONTIMER_DIST:-}\" ]; then out=\"$ACTIONTIMER_DIST\"; else out=dist; rm -rf \"$out\"; fi; mkdir -p \"$out/icons\" && cp index.html style.css app.js sw.js manifest.webmanifest about.html \"$out/\" && cp icons/icon-192.png icons/icon-512.png icons/apple-touch-icon.png \"$out/icons\"",
     "test": "node --test tests/*.test.mjs",
     "deploy": "npm run build && wrangler deploy"
   },
