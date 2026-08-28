@@ -1,7 +1,7 @@
 "use strict";
 
 // 更新時は必ずバージョンを上げること(CLAUDE.md Failure Modes 参照)
-const CACHE_VERSION = "kichijitsu-v23";
+const CACHE_VERSION = "kichijitsu-v24";
 
 const ASSETS = [
   "./",
@@ -36,9 +36,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   // キャッシュ優先、なければネットワーク。両方失敗したら日本語の503を返す
+  const requestURL = new URL(event.request.url);
+  const isAboutNavigation =
+    event.request.mode === "navigate" &&
+    requestURL.origin === self.location.origin &&
+    (requestURL.pathname === "/about" || requestURL.pathname === "/about/");
+  const cacheRequest = isAboutNavigation
+    ? new Request(new URL("./about.html", self.location))
+    : event.request;
   event.respondWith(
     caches
-      .match(event.request)
+      .match(cacheRequest)
       .then((cached) => cached || fetch(event.request))
       .catch(() =>
         new Response(
