@@ -1,7 +1,7 @@
 "use strict";
 
 // 更新時は必ずバージョンを上げること(CLAUDE.md Failure Modes 参照)
-const CACHE_VERSION = "kichijitsu-v24";
+const CACHE_VERSION = "kichijitsu-v25";
 
 const ASSETS = [
   "./",
@@ -15,9 +15,25 @@ const ASSETS = [
   "./icons/icon-512.png",
 ];
 
+const ABOUT_ASSET = "./about.html";
+const ABOUT_CANONICAL = "./about";
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_VERSION).then(async (cache) => {
+      await cache.addAll(ASSETS.filter((asset) => asset !== ABOUT_ASSET));
+
+      const aboutResponse = await fetch(new URL(ABOUT_ASSET, self.location));
+      if (!aboutResponse.ok) throw new Error(`asset fetch failed: ${ABOUT_ASSET}`);
+      const aboutBody = await aboutResponse.arrayBuffer();
+      const buildAboutResponse = () => new Response(aboutBody, {
+        status: aboutResponse.status,
+        statusText: aboutResponse.statusText,
+        headers: aboutResponse.headers,
+      });
+      await cache.put(new URL(ABOUT_ASSET, self.location), buildAboutResponse());
+      await cache.put(new URL(ABOUT_CANONICAL, self.location), buildAboutResponse());
+    })
   );
   self.skipWaiting();
 });
@@ -42,7 +58,7 @@ self.addEventListener("fetch", (event) => {
     requestURL.origin === self.location.origin &&
     (requestURL.pathname === "/about" || requestURL.pathname === "/about/");
   const cacheRequest = isAboutNavigation
-    ? new Request(new URL("./about.html", self.location))
+    ? new Request(new URL(ABOUT_CANONICAL, self.location))
     : event.request;
   event.respondWith(
     caches
