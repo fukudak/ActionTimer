@@ -247,7 +247,7 @@ function tick() {
 }
 function buildStartControls(item) {
   const wrap = document.createElement("div"); wrap.className = "task-row__actions";
-  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手"; button.setAttribute("aria-label", `「${item.title}」を着手として消す`); button.addEventListener("click", () => startItem(item.id)); wrap.appendChild(button); return wrap;
+  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手"; button.setAttribute("aria-label", `「${item.title}」を着手として消す`); button.addEventListener("click", () => { if (!confirm(`「${item.title}」に着手しますか?`)) return; startItem(item.id); }); wrap.appendChild(button); return wrap;
 }
 function renderUnexploded() {
   unexplodedList.textContent = "";
@@ -280,17 +280,14 @@ function renderHistory() {
   }
   historyEmpty.hidden = state.history.length > 0;
   historyClearBtn.hidden = state.history.length === 0;
-  const resolvedCount = state.history.length + state.unexploded.length;
   historySummaryEl.textContent = "";
-  if (state.history.length === 0 || resolvedCount === 0) {
+  if (state.history.length === 0) {
     historySummaryEl.hidden = true;
     return;
   }
   const avgMs = state.history.reduce((sum, it) => sum + (it.startedAt - it.createdAt), 0) / state.history.length;
-  const rate = Math.round((state.history.length / resolvedCount) * 100);
   historySummaryEl.hidden = false;
   historySummaryEl.append(
-    buildStat(`${rate}%(${state.history.length}/${resolvedCount})`, "着手率"),
     buildStat(formatDuration(avgMs), "平均着手時間"),
   );
 }

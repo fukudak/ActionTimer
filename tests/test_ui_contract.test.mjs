@@ -30,12 +30,17 @@ test("production files exclude mock-only sorting and pagination features", () =>
   }
 });
 
-test("history feature is present with title, elapsed time, and rate", () => {
+test("history feature is present with title and elapsed time, but no rate", () => {
   const html = read("index.html");
   const app = read("app.js");
   assert.match(html, /<h2 id="history-heading" tabindex="-1">履歴<\/h2>/);
   assert.match(app, /state\.history\.unshift/);
-  assert.match(app, /着手率/);
+  assert.doesNotMatch(app, /着手率/);
+});
+
+test("start button requires confirmation before recording", () => {
+  const app = read("app.js");
+  assert.match(app, /if \(!confirm\(`「\$\{item\.title\}」に着手しますか\?`\)\) return;/);
 });
 
 test("history screen is reached and left via the same header toggle button", () => {
@@ -59,7 +64,7 @@ test("burning and unexploded rows expose swipe-to-delete only", () => {
   assert.doesNotMatch(app, /startEditTitle/);
 });
 
-test("history summary shows rate and average as large stats with a clear button", () => {
+test("history summary shows average as a large stat with a clear button", () => {
   const html = read("index.html");
   const css = read("style.css");
   const app = read("app.js");
