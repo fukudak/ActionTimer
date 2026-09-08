@@ -83,10 +83,11 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .unexploded-note__title { margin:0; }
 .unexploded-actions { display:flex; gap:7px; flex-shrink:0; }
 .btn-delete { border-color:var(--danger); color:var(--danger); }
-.history-summary { display:flex; gap:12px; margin:0 0 16px; }
-.stat { flex:1; padding:14px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
+.history-summary { display:flex; flex-direction:column; gap:6px; margin:0 0 16px; }
+.stat { padding:14px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); text-align:center; }
 .stat__value { margin:0; font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
 .stat__label { margin:4px 0 0; color:var(--muted); font-size:.78rem; }
+.stat__sub { margin:0; padding:0 4px; color:var(--muted); font-size:.75rem; text-align:center; }
 .history-row__title { margin:0; }
 .history-row__meta { margin:5px 0 0; color:var(--muted); font-size:.78rem; }
 .btn-clear-history { margin:0 0 12px; padding:8px 14px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font:inherit; font-size:.82rem; cursor:pointer; }

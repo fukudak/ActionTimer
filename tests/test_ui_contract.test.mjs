@@ -30,11 +30,12 @@ test("production files exclude mock-only sorting and pagination features", () =>
   }
 });
 
-test("history feature is present with title and elapsed time, but no rate", () => {
+test("history feature is present with title, elapsed time, and started count", () => {
   const html = read("index.html");
   const app = read("app.js");
   assert.match(html, /<h2 id="history-heading" tabindex="-1">履歴<\/h2>/);
   assert.match(app, /state\.history\.unshift/);
+  assert.match(app, /着手件数/);
   assert.doesNotMatch(app, /着手率/);
 });
 
@@ -64,13 +65,17 @@ test("burning and unexploded rows expose swipe-to-delete only", () => {
   assert.doesNotMatch(app, /startEditTitle/);
 });
 
-test("history summary shows average as a large stat with a clear button", () => {
+test("history summary shows average as the large stat with started count as small text below, and a clear button", () => {
   const html = read("index.html");
   const css = read("style.css");
   const app = read("app.js");
   assert.match(html, /id="history-clear"/);
   assert.match(css, /\.stat__value/);
+  assert.match(css, /\.stat__sub/);
   assert.match(app, /clearHistory/);
+  assert.match(app, /buildStat\(formatDuration\(avgMs\), "平均着手時間"\)/);
+  assert.doesNotMatch(app, /\bbuildStat\([^)]*着手件数/);
+  assert.match(app, /state\.history\.length\}件/);
 });
 
 test("about page describes the light Japanese presentation", () => {

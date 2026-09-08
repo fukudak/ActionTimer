@@ -81,6 +81,7 @@
     .stats { display: flex; flex-wrap: wrap; gap: 28px; }
     .stat strong { display: block; font: 600 clamp(1.8rem, 6vw, 2.8rem)/1 var(--serif); color: var(--accent); }
     .stat span { color: var(--ink2); font-size: .9rem; }
+    .stat-sub { margin: 10px 0 0; color: var(--ink2); font-size: .85rem; }
     .note { margin-top: 22px; padding: 20px; border-left: 3px solid var(--flame); background: var(--muted); }
     .note h3 { font-size: 1.15rem; }
     .note p { margin: 8px 0 0; }
@@ -158,7 +159,7 @@
 
     <section class="section reveal" aria-labelledby="history-title">
       <div class="section-inner"><div class="section-heading"><p class="section-label">履歴</p><h2 id="history-title">急かさない。でも、振り返れる。</h2><p>着手した項目は履歴に残り、着手のペースをあとから確認できます。</p></div>
-        <div class="history-box"><div class="stats"><div class="stat"><strong>18時間40分</strong><span>平均着手時間</span></div></div><p>表示例は平均18時間40分。平均着手時間は、着手した各項目の点火から着手までの時間の平均です。履歴全件クリアは不可逆です。この操作は取り消せません。</p></div>
+        <div class="history-box"><div class="stats"><div class="stat"><strong>18時間40分</strong><span>平均着手時間</span></div></div><p class="stat-sub">着手件数 12件</p><p>表示例は平均18時間40分。着手件数は平均着手時間の下に、着手件数 12件のように小さく表示します。平均着手時間は、着手した各項目の点火から着手までの時間の平均です。履歴全件クリアは不可逆です。この操作は取り消せません。</p></div>
       </div>
     </section>
 

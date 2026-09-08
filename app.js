@@ -289,6 +289,7 @@ function renderHistory() {
   historySummaryEl.hidden = false;
   historySummaryEl.append(
     buildStat(formatDuration(avgMs), "平均着手時間"),
+    buildStatSub(`${state.history.length}件`, "着手件数"),
   );
 }
 function buildStat(value, label) {
@@ -296,6 +297,10 @@ function buildStat(value, label) {
   const valueEl = document.createElement("p"); valueEl.className = "stat__value"; valueEl.textContent = value;
   const labelEl = document.createElement("p"); labelEl.className = "stat__label"; labelEl.textContent = label;
   stat.append(valueEl, labelEl); return stat;
+}
+function buildStatSub(value, label) {
+  const sub = document.createElement("p"); sub.className = "stat__sub";
+  sub.textContent = `${label} ${value}`; return sub;
 }
 function clearHistory() {
   if (state.history.length === 0) return;

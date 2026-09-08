@@ -38,12 +38,21 @@ test("LP preview and explanations disclose examples, urgency, storage, and avera
   assert.doesNotMatch(html, /あなたの端末だけで動く。/);
 });
 
+test("LP history example shows started count as small text below the average, not a rate stat", () => {
+  const html = read("about.html");
+  assert.match(html, /着手件数は平均着手時間の下に、着手件数\s*12件のように小さく表示します。/);
+  assert.match(html, /class="stat-sub">着手件数\s*12件/);
+  assert.doesNotMatch(html, /着手率/);
+  assert.doesNotMatch(html, /75%/);
+  assert.doesNotMatch(html, /着手件数\s*÷（着手件数＋燃え尽きた件数）/);
+});
+
 test("LP documents the real product flow and local-only boundaries", () => {
   const html = read("about.html");
   for (const token of [
     "歯医者を予約する", "残り 51時間24分", "着手", "左へスワイプして削除",
     "点火", "残り12時間未満", "点火日時", "着手日時", "再点火", "燃え尽きた",
-    "平均18時間40分",
+    "平均18時間40分", "着手件数 12件",
     "localStorage", "この端末・このブラウザ", "保存サーバーなし", "オフラインPWA",
     "アプリをオンラインで一度開き、キャッシュ完了後はオフラインでも開けます。",
     "端末間・ブラウザ間同期なし", "サイトデータ削除で登録・履歴は消失", "import/exportなし",
@@ -121,5 +130,5 @@ test("LP reveal motion has observer, unsupported-browser, and reduced-motion con
 
 test("service worker cache version advances for the LP release", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v26";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v27";/);
 });
