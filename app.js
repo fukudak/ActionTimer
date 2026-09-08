@@ -165,7 +165,7 @@ const uiStatusEl = document.getElementById("ui-status");
 if (needsPersist) saveState();
 function focusHeading(el) { el?.focus?.(); }
 function formatRemaining(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; const s = Math.floor((ms % MS_PER_MINUTE) / 1000); if (h > 0) return `残り ${h}時間${m}分`; if (m > 0) return `残り ${m}分${s}秒`; return `残り ${s}秒`; }
-function formatDuration(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; if (h > 0) return m > 0 ? `${h}時間${m}分` : `${h}時間`; return `${m}分`; }
+function formatDuration(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; if (h > 0) return `${h}時間${m}分`; return `${m}分`; }
 function formatDateTime(ts) { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
 function render() { renderBurning(); renderUnexploded(); renderHistory(); }
 
@@ -289,7 +289,7 @@ function renderHistory() {
   historySummaryEl.hidden = false;
   historySummaryEl.append(
     buildStat(formatDuration(avgMs), "平均着手時間"),
-    buildStatSub(`${state.history.length}件`, "着手件数"),
+    buildStat(`${state.history.length}件`, "着手件数"),
   );
 }
 function buildStat(value, label) {
@@ -297,10 +297,6 @@ function buildStat(value, label) {
   const valueEl = document.createElement("p"); valueEl.className = "stat__value"; valueEl.textContent = value;
   const labelEl = document.createElement("p"); labelEl.className = "stat__label"; labelEl.textContent = label;
   stat.append(valueEl, labelEl); return stat;
-}
-function buildStatSub(value, label) {
-  const sub = document.createElement("p"); sub.className = "stat__sub";
-  sub.textContent = `${label} ${value}`; return sub;
 }
 function clearHistory() {
   if (state.history.length === 0) return;

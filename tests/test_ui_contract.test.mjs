@@ -67,17 +67,25 @@ test("burning and unexploded rows expose swipe-to-delete only", () => {
   assert.doesNotMatch(app, /startEditTitle/);
 });
 
-test("history summary shows average as the large stat with started count as small text below, and a clear button", () => {
+test("history summary shows two equal stats in a row, and a clear button", () => {
   const html = read("index.html");
   const css = read("style.css");
   const app = read("app.js");
   assert.match(html, /id="history-clear"/);
   assert.match(css, /\.stat__value/);
-  assert.match(css, /\.stat__sub/);
+  assert.doesNotMatch(css, /\.stat__sub/);
+  assert.match(css, /\.history-summary\s*\{[^}]*display:flex[^}]*flex-direction:row/);
   assert.match(app, /clearHistory/);
   assert.match(app, /buildStat\(formatDuration\(avgMs\), "平均着手時間"\)/);
-  assert.doesNotMatch(app, /\bbuildStat\([^)]*着手件数/);
-  assert.match(app, /state\.history\.length\}件/);
+  assert.match(app, /buildStat\(\`\$\{state\.history\.length\}件\`, "着手件数"\)/);
+  assert.doesNotMatch(app, /buildStatSub|stat__sub/);
+  assert.match(app, /historySummaryEl\.append\(\s*buildStat\(formatDuration\(avgMs\), "平均着手時間"\),\s*buildStat\(\`\$\{state\.history\.length\}件\`, "着手件数"\)\s*,?\s*\)/s);
+});
+
+test("formatDuration always includes minutes for durations with hours", () => {
+  const app = read("app.js");
+  assert.match(app, /if \(h > 0\) return \`\$\{h\}時間\$\{m\}分\`;/);
+  assert.doesNotMatch(app, /if \(h > 0\) return m > 0/);
 });
 
 test("about page describes the light Japanese presentation", () => {
