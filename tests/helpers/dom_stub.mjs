@@ -70,6 +70,8 @@ export class FakeElement {
     this.tabIndex = 0;
     this._listeners = {};
     this.classList = new FakeClassList(this);
+    this.open = false;
+    this.returnValue = "";
   }
 
   setAttribute(k, v) {
@@ -116,6 +118,17 @@ export class FakeElement {
     this.dispatch("click");
   }
 
+  showModal() {
+    this.open = true;
+    this.returnValue = "";
+  }
+
+  close(returnValue) {
+    if (returnValue !== undefined) this.returnValue = String(returnValue);
+    this.open = false;
+    this.dispatch("close");
+  }
+
   focus() {}
   select() {}
 
@@ -157,7 +170,8 @@ function createDocument() {
   const ids = {};
   const created = [];
   const inputIds = new Set(["add-input"]);
-  const buttonIds = new Set(["history-toggle", "history-back", "history-clear"]);
+  const buttonIds = new Set(["history-toggle", "history-back", "history-clear", "confirm-dialog-ok", "confirm-dialog-cancel"]);
+  const headingIds = new Set(["burning-heading", "unexploded-heading", "history-heading", "confirm-dialog-title"]);
   for (const id of [
     "burning-list",
     "unexploded-list",
@@ -178,9 +192,15 @@ function createDocument() {
     "history-clear",
     "view-now",
     "view-history",
+    "confirm-dialog",
+    "confirm-dialog-title",
+    "confirm-dialog-message",
+    "confirm-dialog-ok",
+    "confirm-dialog-cancel",
   ]) {
-    ids[id] = new FakeElement(inputIds.has(id) ? "input" : buttonIds.has(id) ? "button" : "div");
-    if (id === "burning-heading" || id === "unexploded-heading" || id === "history-heading") ids[id].setAttribute("tabindex", "-1");
+    const tag = inputIds.has(id) ? "input" : buttonIds.has(id) ? "button" : id === "confirm-dialog" ? "dialog" : headingIds.has(id) ? "h2" : "div";
+    ids[id] = new FakeElement(tag);
+    if (headingIds.has(id) && id !== "confirm-dialog-title") ids[id].setAttribute("tabindex", "-1");
   }
 
   // 実DOM同様、appendChild自体はクリックを発火しない。
@@ -250,7 +270,6 @@ export function loadApp(options = {}) {
       const idx = intervals.findIndex((i) => i.id === id);
       if (idx >= 0) intervals.splice(idx, 1);
     },
-    confirm: options.confirm ?? (() => true),
   };
 
   vm.runInNewContext(readFileSync(APP_PATH, "utf8"), ctx, {
@@ -295,6 +314,16 @@ export function loadApp(options = {}) {
 
     historyCards() {
       return doc._ids["history-list"].children;
+    },
+    answerConfirm(accept = true) {
+      doc._ids[accept ? "confirm-dialog-ok" : "confirm-dialog-cancel"].click();
+      return Promise.resolve();
+    },
+    confirmMessage() {
+      return doc._ids["confirm-dialog-message"].textContent;
+    },
+    confirmDialogOpen() {
+      return Boolean(doc._ids["confirm-dialog"].open);
     },
   };
 }

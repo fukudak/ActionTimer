@@ -59,11 +59,12 @@ test("unexploded_failed_at_is_canonicalized_to_fixed_72h", () => {
   ]);
 });
 
-test("interval_stops_when_empty_and_restarts_once", () => {
+test("interval_stops_when_empty_and_restarts_once", async () => {
   const app = loadApp({ now: T0 });
   app.submitAdd("a");
   const card = app.burningCards()[0];
   card.querySelector(".btn-start").dispatch("click");
+  await app.answerConfirm(true);
   assert.equal(app.intervals.length, 0);
   app.ctx.reigniteItem("missing");
   app.storage.setItem("kichijitsu-timer-v1", JSON.stringify({ pending: [], unexploded: [{ id: "u", title: "u", createdAt: T0, failedAt: T0 }] }));

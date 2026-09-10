@@ -93,6 +93,28 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .btn-clear-history { margin:0 0 12px; padding:8px 14px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); font:inherit; font-size:.82rem; cursor:pointer; }
 .btn-clear-history:hover { border-color:var(--danger); color:var(--danger); }
 .save-error { margin: 0 0 18px; padding: 12px 14px; border: 2px solid var(--danger); border-radius: 10px; background: #fff1ed; color: var(--danger); font-weight: 700; }
+.app-dialog {
+  width: min(calc(100% - 32px), 360px);
+  max-width: calc(100% - 32px);
+  padding: 20px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 12px 40px rgba(36, 26, 16, .18);
+}
+.app-dialog::backdrop { background: rgba(36, 26, 16, .45); }
+.app-dialog__title { margin: 0 0 8px; font-size: 1.05rem; font-weight: 600; }
+.app-dialog__message { margin: 0 0 18px; color: var(--ink); font-size: .92rem; }
+.app-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.app-dialog__cancel, .app-dialog__ok {
+  min-width: 44px; min-height: 44px; padding: 8px 14px; border-radius: 9px;
+  font: inherit; cursor: pointer; white-space: nowrap;
+}
+.app-dialog__cancel { border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.app-dialog__cancel:hover { border-color: var(--ink); color: var(--ink); }
+.app-dialog__ok { border: 0; background: var(--flame); color: var(--title-ink); font-weight: 700; }
+.app-dialog__ok--danger { background: var(--danger); }
 .burn-out { animation:burnout 1.6s ease-in forwards; }
 @keyframes burnout { to { opacity:0; transform:translateY(8px); filter:grayscale(1); } }
 @media screen and (min-width: 320px) { .add-form { grid-template-columns:minmax(0,1fr) auto; } }

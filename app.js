@@ -131,19 +131,21 @@ function reigniteItem(id) {
   const card = [...burningList.children].find((el) => el.dataset.id === id);
   card?.focus();
 }
-function deleteUnexploded(id) {
+async function deleteUnexploded(id) {
   const item = state.unexploded.find((it) => it.id === id);
   if (!item) return;
-  if (!confirm(`「${item.title}」を削除します。この操作は取り消せません。`)) return;
+  if (!(await askConfirm(`「${item.title}」を削除します。この操作は取り消せません。`, { confirmLabel: "削除", danger: true }))) return;
+  if (!state.unexploded.some((it) => it.id === id)) return;
   state.unexploded = state.unexploded.filter((it) => it.id !== id);
   saveState(); render();
   uiStatusEl.textContent = `「${item.title}」を削除しました。`;
   focusHeading(unexplodedHeading);
 }
-function deletePending(id) {
+async function deletePending(id) {
   const item = state.pending.find((it) => it.id === id);
   if (!item) return;
-  if (!confirm(`「${item.title}」を削除します。この操作は取り消せません。`)) return;
+  if (!(await askConfirm(`「${item.title}」を削除します。この操作は取り消せません。`, { confirmLabel: "削除", danger: true }))) return;
+  if (!state.pending.some((it) => it.id === id)) return;
   state.pending = state.pending.filter((it) => it.id !== id);
   saveState(); render();
   uiStatusEl.textContent = `「${item.title}」を削除しました。`;
@@ -162,6 +164,43 @@ const burningHeading = document.getElementById("burning-heading");
 const unexplodedHeading = document.getElementById("unexploded-heading");
 const saveErrorEl = document.getElementById("save-error");
 const uiStatusEl = document.getElementById("ui-status");
+const confirmDialogEl = document.getElementById("confirm-dialog");
+const confirmMessageEl = document.getElementById("confirm-dialog-message");
+const confirmOkBtn = document.getElementById("confirm-dialog-ok");
+const confirmCancelBtn = document.getElementById("confirm-dialog-cancel");
+let confirmResolver = null;
+let confirmRestoreFocus = null;
+function settleConfirm(ok) {
+  if (!confirmResolver) return;
+  const resolve = confirmResolver;
+  confirmResolver = null;
+  if (confirmDialogEl.open) confirmDialogEl.close();
+  const restore = confirmRestoreFocus;
+  confirmRestoreFocus = null;
+  resolve(ok);
+  restore?.focus?.();
+}
+function askConfirm(message, { confirmLabel = "OK", danger = false } = {}) {
+  if (confirmResolver) return Promise.resolve(false);
+  confirmMessageEl.textContent = message;
+  confirmOkBtn.textContent = confirmLabel;
+  confirmOkBtn.classList.toggle("app-dialog__ok--danger", danger);
+  confirmRestoreFocus = document.activeElement;
+  return new Promise((resolve) => {
+    confirmResolver = resolve;
+    confirmDialogEl.showModal();
+    (danger ? confirmCancelBtn : confirmOkBtn).focus();
+  });
+}
+confirmOkBtn.addEventListener("click", () => settleConfirm(true));
+confirmCancelBtn.addEventListener("click", () => settleConfirm(false));
+confirmDialogEl.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  settleConfirm(false);
+});
+confirmDialogEl.addEventListener("click", (event) => {
+  if (event.target === confirmDialogEl) settleConfirm(false);
+});
 if (needsPersist) saveState();
 function focusHeading(el) { el?.focus?.(); }
 function formatRemaining(ms) { const totalMin = Math.floor(ms / MS_PER_MINUTE); const h = Math.floor(totalMin / 60); const m = totalMin % 60; const s = Math.floor((ms % MS_PER_MINUTE) / 1000); if (h > 0) return `残り ${h}時間${m}分`; if (m > 0) return `残り ${m}分${s}秒`; return `残り ${s}秒`; }
@@ -247,7 +286,7 @@ function tick() {
 }
 function buildStartControls(item) {
   const wrap = document.createElement("div"); wrap.className = "task-row__actions";
-  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手"; button.setAttribute("aria-label", `「${item.title}」を着手として消す`); button.addEventListener("click", () => { if (!confirm(`「${item.title}」に着手しますか?`)) return; startItem(item.id); }); wrap.appendChild(button); return wrap;
+  const button = document.createElement("button"); button.type = "button"; button.className = "btn-start"; button.textContent = "着手"; button.setAttribute("aria-label", `「${item.title}」を着手として消す`); button.addEventListener("click", async () => { if (!(await askConfirm(`「${item.title}」に着手しますか?`, { confirmLabel: "着手" }))) return; startItem(item.id); }); wrap.appendChild(button); return wrap;
 }
 function renderUnexploded() {
   unexplodedList.textContent = "";
@@ -298,9 +337,10 @@ function buildStat(value, label) {
   const labelEl = document.createElement("p"); labelEl.className = "stat__label"; labelEl.textContent = label;
   stat.append(valueEl, labelEl); return stat;
 }
-function clearHistory() {
+async function clearHistory() {
   if (state.history.length === 0) return;
-  if (!confirm("着手履歴をすべて削除します。この操作は取り消せません。")) return;
+  if (!(await askConfirm("着手履歴をすべて削除します。この操作は取り消せません。", { confirmLabel: "削除", danger: true }))) return;
+  if (state.history.length === 0) return;
   state.history = [];
   saveState(); render();
   uiStatusEl.textContent = "着手履歴をすべて削除しました。";

@@ -17,7 +17,7 @@ test("production shell promotes the bright one-line Japanese UI", () => {
   assert.match(css, /@media screen and \(min-width: 320px\)/);
   assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\) auto/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(html, /class="app-version">ver\.1\.0\.0</);
+  assert.match(html, /class="app-version">ver\.1\.1\.0</);
   assert.match(css, /\.app-version/);
 });
 
@@ -42,8 +42,19 @@ test("history feature is present with title, elapsed time, and started count", (
 });
 
 test("start button requires confirmation before recording", () => {
+  const html = read("index.html");
+  const css = read("style.css");
   const app = read("app.js");
-  assert.match(app, /if \(!confirm\(`「\$\{item\.title\}」に着手しますか\?`\)\) return;/);
+  assert.match(html, /<dialog id="confirm-dialog"/);
+  assert.match(html, /id="confirm-dialog-message"/);
+  assert.match(html, /id="confirm-dialog-ok"/);
+  assert.match(html, /id="confirm-dialog-cancel"/);
+  assert.match(app, /askConfirm\(`「\$\{item\.title\}」に着手しますか\?`/);
+  assert.match(app, /function askConfirm/);
+  assert.doesNotMatch(app, /\bconfirm\s*\(/);
+  assert.match(css, /\.app-dialog::backdrop/);
+  assert.match(css, /\.app-dialog__cancel,\s*\.app-dialog__ok\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(css, /\.app-dialog__ok--danger/);
 });
 
 test("history screen is reached and left via the same header toggle button", () => {

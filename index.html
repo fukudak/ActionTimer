@@ -54,7 +54,15 @@
       </section>
     </div>
   </main>
-  <p class="app-version">ver.1.0.0</p>
+  <dialog id="confirm-dialog" class="app-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+    <h2 id="confirm-dialog-title" class="app-dialog__title">確認</h2>
+    <p id="confirm-dialog-message" class="app-dialog__message"></p>
+    <div class="app-dialog__actions">
+      <button type="button" class="app-dialog__cancel" id="confirm-dialog-cancel">キャンセル</button>
+      <button type="button" class="app-dialog__ok" id="confirm-dialog-ok">OK</button>
+    </div>
+  </dialog>
+  <p class="app-version">ver.1.1.0</p>
   <script src="app.js"></script>
 </body>
 </html>
