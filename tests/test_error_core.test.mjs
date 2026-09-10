@@ -47,7 +47,7 @@ test("delete_confirm_uses_exact_text", async () => {
   app.storage.setItem("kichijitsu-timer-v1", JSON.stringify({ pending: [], unexploded: [{ id: "u", title: "危険な項目", createdAt: T0, failedAt: T0 }] }));
   const restarted = loadApp({ now: T0, storage: app.storage });
   restarted.unexplodedCards()[0].querySelector(".btn-delete").dispatch("click");
-  assert.equal(restarted.confirmMessage(), "「危険な項目」を削除します。この操作は取り消せません。");
+  assert.equal(restarted.confirmMessage(), "削除しますか？");
   assert.equal(restarted.confirmDialogOpen(), true);
   await restarted.answerConfirm(false);
   assert.equal(restarted.confirmDialogOpen(), false);

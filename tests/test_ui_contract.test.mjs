@@ -17,7 +17,7 @@ test("production shell promotes the bright one-line Japanese UI", () => {
   assert.match(css, /@media screen and \(min-width: 320px\)/);
   assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\) auto/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(html, /class="app-version">ver\.1\.1\.0</);
+  assert.match(html, /class="app-version">ver\.1\.1\.1</);
   assert.match(css, /\.app-version/);
 });
 
@@ -49,7 +49,7 @@ test("start button requires confirmation before recording", () => {
   assert.match(html, /id="confirm-dialog-message"/);
   assert.match(html, /id="confirm-dialog-ok"/);
   assert.match(html, /id="confirm-dialog-cancel"/);
-  assert.match(app, /askConfirm\(`「\$\{item\.title\}」に着手しますか\?`/);
+  assert.match(app, /askConfirm\("着手した？"/);
   assert.match(app, /function askConfirm/);
   assert.doesNotMatch(app, /\bconfirm\s*\(/);
   assert.match(css, /\.app-dialog::backdrop/);

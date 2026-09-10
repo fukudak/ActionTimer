@@ -20,6 +20,7 @@ test("start_immediately_removes_and_records_history", async () => {
   app.submitAdd("歯医者を予約する");
   const card = pending(app);
   card.querySelector(".btn-start").dispatch("click");
+  assert.equal(app.confirmMessage(), "着手した？");
   await app.answerConfirm(true);
   assert.equal(app.readStorage().pending.length, 0);
   assert.equal(app.readStorage().unexploded.length, 0);
@@ -64,7 +65,7 @@ test("unexploded_delete_cancel_and_confirm", async () => {
   const button = app.unexplodedCards()[0].querySelector(".btn-delete");
   assert.equal(button.getAttribute("aria-label"), "「消す候補」を削除する");
   button.dispatch("click");
-  assert.equal(app.confirmMessage(), "「消す候補」を削除します。この操作は取り消せません。");
+  assert.equal(app.confirmMessage(), "削除しますか？");
   await app.answerConfirm(false);
   assert.equal(app.readStorage().unexploded.length, 1);
   button.dispatch("click");
@@ -131,7 +132,7 @@ test("history_clear_cancel_and_confirm", async () => {
   await app.answerConfirm(true);
   assert.equal(app.readStorage().history.length, 1);
   app.doc._ids["history-clear"].dispatch("click");
-  assert.equal(app.confirmMessage(), "着手履歴をすべて削除します。この操作は取り消せません。");
+  assert.equal(app.confirmMessage(), "削除しますか？");
   await app.answerConfirm(false);
   assert.equal(app.readStorage().history.length, 1);
   app.doc._ids["history-clear"].dispatch("click");
