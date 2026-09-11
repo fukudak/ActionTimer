@@ -34,6 +34,8 @@ const defaultNetworkAssets = () => ({
   ),
   "https://example.test/style.css": cachedResponse("/* css */"),
   "https://example.test/app.js": cachedResponse("console.log('cached')"),
+  "https://example.test/cosmetic-store.mjs": cachedResponse("export const CATALOG = [];"),
+  "https://example.test/cosmetic-ui.mjs": cachedResponse("console.log('store')"),
   "https://example.test/manifest.webmanifest": cachedResponse("{}"),
   "https://example.test/icons/apple-touch-icon.png": cachedResponse("icon"),
   "https://example.test/icons/icon-192.png": cachedResponse("icon"),

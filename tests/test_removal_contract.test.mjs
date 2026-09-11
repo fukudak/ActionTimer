@@ -42,11 +42,11 @@ test("backup UI and implementation are fully removed", () => {
 
 test("service worker cache version and PNG assets include the LP", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v31";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v32";/);
   const block = sw.match(/const ASSETS = \[([\s\S]*?)\];/)?.[1] ?? "";
   const assets = [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(assets, [
-    "./", "./index.html", "./about.html", "./style.css", "./app.js", "./manifest.webmanifest",
+    "./", "./index.html", "./about.html", "./style.css", "./app.js", "./cosmetic-store.mjs", "./cosmetic-ui.mjs", "./manifest.webmanifest",
     "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png",
   ]);
 });

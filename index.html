@@ -42,6 +42,17 @@
         <p id="unexploded-empty" class="empty-note" hidden>燃え尽きた項目はありません。着手できなかった項目はここに残ります。</p>
       </section>
     </div>
+    <section class="store-section" aria-labelledby="store-heading">
+      <div class="store-heading-row"><h2 id="store-heading">着せ替えストア</h2><span class="store-note">試着は保存されません</span></div>
+      <p>既定の明るい和風配色は無料です。購入後、入金確認された配色だけ端末に保存できます。</p>
+      <ul id="skin-catalog" class="skin-catalog"></ul>
+      <p id="skin-store-status" class="store-status" role="status" aria-live="polite"></p>
+      <form id="skin-restore-form" class="skin-restore-form" autocomplete="off">
+        <label for="skin-restore-code">購入コードで復元</label>
+        <input id="skin-restore-code" type="text" autocomplete="off">
+        <button type="submit">復元</button>
+      </form>
+    </section>
     <div id="view-history" class="view">
       <section id="history-section" class="list-section list-section--history" aria-labelledby="history-heading">
         <div class="history-header-row">
@@ -64,5 +75,6 @@
   </dialog>
   <p class="app-version">ver.1.1.1</p>
   <script src="app.js"></script>
+  <script type="module" src="cosmetic-ui.mjs"></script>
 </body>
 </html>
