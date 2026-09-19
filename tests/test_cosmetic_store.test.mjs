@@ -1,7 +1,7 @@
 "use strict";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CATALOG, STORAGE_KEYS, createCosmeticStore, createFetchBillingClient, isLocalHost, resolveDefaultBaseUrl, createDefaultBillingClient } from "../cosmetic-store.mjs";
+import { CATALOG, STORAGE_KEYS, createCosmeticStore, createFetchBillingClient, isLocalHost, resolveDefaultBaseUrl, createDefaultBillingClient, resolveDefaultStoreOrigin, storeProductUrl } from "../cosmetic-store.mjs";
 
 function memoryStorage(seed = {}) {
   const data = new Map(Object.entries(seed));
@@ -12,11 +12,13 @@ function makeStore(options = {}) {
   return createCosmeticStore({ storage: memoryStorage(), deviceId: "device-test", ...options });
 }
 
-test("catalog contains exactly two 500 yen ActionTimer skins", () => {
-  assert.deepEqual(CATALOG.map(({ id, priceYen }) => ({ id, priceYen })), [
-    { id: "actiontimer.skin.1", priceYen: 500 },
-    { id: "actiontimer.skin.2", priceYen: 500 },
+test("catalog contains exactly two ActionTimer skins and no local price table", () => {
+  assert.deepEqual(CATALOG.map(({ id, name }) => ({ id, name })), [
+    { id: "actiontimer.skin.1", name: "朝焼け" },
+    { id: "actiontimer.skin.2", name: "若葉" },
   ]);
+  assert.equal("priceYen" in CATALOG[0], false);
+  assert.equal("priceYen" in CATALOG[1], false);
 });
 
 test("try-on changes the active preview but is not persisted", () => {
@@ -217,4 +219,15 @@ test("store.fakeCompletePurchase delegates to the billing client with the device
   const result = await store.fakeCompletePurchase("purchase-1");
   assert.deepEqual(calledWith, { purchaseId: "purchase-1", deviceId: "device-test" });
   assert.deepEqual(result, { status: "completed" });
+});
+
+test("store product URLs keep source_app and offer id out of secrets", () => {
+  const url = storeProductUrl("actiontimer.skin.1", { origin: "http://127.0.0.1:5173" });
+  assert.equal(url, "http://127.0.0.1:5173/index.html?source_app=actiontimer#/products/actiontimer.skin.1");
+  assert.equal(url.includes("device"), false);
+  assert.equal(url.includes("token"), false);
+  assert.equal(url.includes("code"), false);
+  assert.equal(storeProductUrl("unknown.skin"), "");
+  assert.equal(resolveDefaultStoreOrigin({ hostname: "localhost" }), "http://127.0.0.1:5173");
+  assert.equal(resolveDefaultStoreOrigin({ hostname: "kichijitsu.example" }), "");
 });

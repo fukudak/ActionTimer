@@ -131,8 +131,8 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .skin-card strong { display:block; }
 .skin-card > span:not(.skin-card__swatch) { color:var(--muted); font-size:.75rem; }
 .skin-card__actions { grid-column:2 / -1; display:flex; gap:7px; }
-.skin-card button, .skin-free { min-height:40px; padding:6px 10px; border:1px solid var(--skin-accent, var(--flame)); border-radius:8px; background:transparent; color:var(--skin-accent, var(--flame)); font:inherit; cursor:pointer; }
-.skin-card button:last-child { background:var(--skin-accent, var(--flame)); color:#fffaf0; }
+.skin-card button, .skin-free, .skin-store-link { min-height:40px; padding:6px 10px; border:1px solid var(--skin-accent, var(--flame)); border-radius:8px; background:transparent; color:var(--skin-accent, var(--flame)); font:inherit; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+.skin-card button:last-child, .skin-store-link { background:var(--skin-accent, var(--flame)); color:#fffaf0; }
 .skin-card button:disabled { opacity:.55; cursor:default; }
 .skin-free { width:100%; margin-top:2px; border-color:var(--line); color:var(--ink); }
 .store-status { min-height:1.4em; margin-top:10px !important; color:var(--skin-accent, var(--flame)) !important; }

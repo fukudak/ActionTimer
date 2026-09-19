@@ -8,8 +8,8 @@ export const STORAGE_KEYS = Object.freeze({
 
 export const FREE_SKIN_ID = "free-default";
 export const CATALOG = Object.freeze([
-  Object.freeze({ id: "actiontimer.skin.1", name: "朝焼け", color: "#c54b37", priceYen: 500 }),
-  Object.freeze({ id: "actiontimer.skin.2", name: "若葉", color: "#3c8064", priceYen: 500 }),
+  Object.freeze({ id: "actiontimer.skin.1", name: "朝焼け", color: "#c54b37" }),
+  Object.freeze({ id: "actiontimer.skin.2", name: "若葉", color: "#3c8064" }),
 ]);
 const PRODUCT_IDS = new Set(CATALOG.map((product) => product.id));
 
@@ -32,6 +32,18 @@ export function isLocalHost(locationRef) {
 
 export function resolveDefaultBaseUrl(locationRef) {
   return isLocalHost(locationRef) ? "http://127.0.0.1:8787" : "";
+}
+
+export function resolveDefaultStoreOrigin(locationRef) {
+  return isLocalHost(locationRef) ? "http://127.0.0.1:5173" : "";
+}
+
+export function storeProductUrl(offerId, { origin = "", sourceApp = "actiontimer" } = {}) {
+  if (!PRODUCT_IDS.has(offerId)) return "";
+  const query = `source_app=${encodeURIComponent(sourceApp)}`;
+  const hash = `#/products/${encodeURIComponent(offerId)}`;
+  if (!origin) return `index.html?${query}${hash}`;
+  return `${String(origin).replace(/\/$/, "")}/index.html?${query}${hash}`;
 }
 
 export function createDefaultBillingClient(locationRef, fetchImpl = globalThis.fetch) {

@@ -11,10 +11,15 @@ class StubElement {
     this.listeners = {};
     this.dataset = {};
     this.style = { setProperty: (key, value) => { this.style[key] = String(value); }, removeProperty: (key) => { delete this.style[key]; } };
-    this.textContent = "";
+    this._textContent = "";
     this.value = "";
     this.disabled = false;
     this.type = "";
+  }
+  get textContent() { return this._textContent; }
+  set textContent(value) {
+    this._textContent = String(value);
+    if (this._textContent === "") this.children = [];
   }
   append(...children) { this.children.push(...children); }
   appendChild(child) { this.children.push(child); return child; }
@@ -106,7 +111,7 @@ function makeBuyStore({ purchaseId = "purchase-1", checkoutUrl = "https://checko
     confirmCheckoutSuccess: async () => null,
     checkout: async (productId) => { calls.push({ name: "checkout", productId }); return { checkout_url: checkoutUrl, purchase_id: purchaseId }; },
     fakeCompletePurchase: async (id) => { calls.push({ name: "fakeComplete", purchaseId: id }); return { status: "completed" }; },
-    refreshEntitlements: async () => { calls.push({ name: "refresh" }); entitlements = [purchaseId ? "actiontimer.skin.1" : null].filter(Boolean); return [...entitlements]; },
+    refreshEntitlements: async () => { calls.push({ name: "refresh" }); return [...entitlements]; },
     confirmPurchaseCode: async (id, productId) => { calls.push({ name: "code", purchaseId: id, productId }); return code; },
     restore: async () => null,
   };
@@ -150,32 +155,21 @@ test("checkout success URL alone and a mismatched product never call the purchas
   ]);
 });
 
-test("on localhost, buying calls checkout then fake complete then refresh then shows the code once, without redirecting", async () => {
-  const store = makeBuyStore({ purchaseId: "purchase-1", code: "ABCD-EFGH" });
+test("unowned skins link to the shared Store instead of starting in-app checkout", async () => {
+  const store = makeBuyStore();
   const { documentRef, locationRef } = await launch("", store, "localhost");
-  const status = documentRef.elements.get("skin-store-status");
-  const buy = findBuyButton(documentRef, 0);
-  buy.dispatch("click");
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.deepEqual(store.calls.slice(-4), [
-    { name: "checkout", productId: "actiontimer.skin.1" },
-    { name: "fakeComplete", purchaseId: "purchase-1" },
-    { name: "refresh" },
-    { name: "code", purchaseId: "purchase-1", productId: "actiontimer.skin.1" },
-  ]);
+  const link = findBuyButton(documentRef, 0);
+  assert.equal(link.textContent, "Storeで購入");
+  assert.equal(link.href, "http://127.0.0.1:5173/index.html?source_app=actiontimer#/products/actiontimer.skin.1");
+  assert.equal(link.href.includes("device"), false);
+  assert.equal(store.calls.some((c) => c.name === "checkout"), false);
   assert.equal(locationRef.assigned, null);
-  assert.match(status.textContent, /ABCD-EFGH/);
 });
 
-test("off localhost, buying redirects to the checkout URL and never fake-completes", async () => {
-  const store = makeBuyStore({ purchaseId: "purchase-1", checkoutUrl: "https://checkout.test/session" });
-  const { documentRef, locationRef } = await launch("", store, "example.test");
-  const buy = findBuyButton(documentRef, 0);
-  buy.dispatch("click");
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.equal(locationRef.assigned, "https://checkout.test/session");
-  assert.equal(store.calls.some((c) => c.name === "fakeComplete"), false);
+test("owned skins keep apply without a store purchase link", async () => {
+  const store = makeStore({ products: ["actiontimer.skin.1"] });
+  const { documentRef } = await launch("", store);
+  const apply = findBuyButton(documentRef, 0);
+  assert.equal(apply.textContent, "このテーマを使う");
+  assert.equal(apply.tagName, "BUTTON");
 });

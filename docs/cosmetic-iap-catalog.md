@@ -10,7 +10,7 @@ Status: Draft for review
 
 ## v1 商品
 
-どちらも買い切り、税込500円、配色の着せ替え。表示名・色の中身は未確定。IDは実装用プレースホルダ。
+どちらも買い切りの配色着せ替え。価格の正本は Shared Store / Billing catalog。アプリは金額を持たない。
 
 - `actiontimer.skin.1` — 着せ替え1
 - `actiontimer.skin.2` — 着せ替え2
