@@ -134,5 +134,5 @@ test("LP reveal motion has observer, unsupported-browser, and reduced-motion con
 
 test("service worker cache version advances for the LP release", () => {
   const sw = read("sw.js");
-  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v34";/);
+  assert.match(sw, /const CACHE_VERSION = "kichijitsu-v35";/);
 });

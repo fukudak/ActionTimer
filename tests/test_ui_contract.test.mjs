@@ -17,7 +17,9 @@ test("production shell promotes the bright one-line Japanese UI", () => {
   assert.match(css, /@media screen and \(min-width: 320px\)/);
   assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\) auto/);
   assert.match(css, /prefers-reduced-motion/);
-  assert.match(html, /class="app-version">ver\.1\.1\.1</);
+  assert.match(html, /class="app-version">ver\.1\.1\.2</);
+  assert.equal(html.includes("購入コード"), false);
+  assert.equal(html.includes("cosmetic-ui.mjs"), false);
   assert.match(css, /\.app-version/);
 });
 
