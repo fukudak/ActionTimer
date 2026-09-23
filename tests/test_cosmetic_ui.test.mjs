@@ -32,6 +32,7 @@ function makeDocument() {
   const elements = new Map([
     ["skin-store-status", new StubElement()],
     ["skin-catalog", new StubElement("ul")],
+    ["store-link-slot", new StubElement("p")],
     ["skin-restore-form", new StubElement("form")],
     ["skin-restore-code", new StubElement("input")],
   ]);
@@ -120,8 +121,7 @@ function makeBuyStore({ purchaseId = "purchase-1", checkoutUrl = "https://checko
 function findBuyButton(documentRef, index = 0) {
   const catalog = documentRef.elements.get("skin-catalog");
   const card = catalog.children[index];
-  const actions = card.children[card.children.length - 1];
-  return actions.children[1];
+  return card.children.find((child) => child.tagName === "BUTTON");
 }
 
 test("normal UI startup refreshes entitlements through the injected store", async () => {
@@ -155,12 +155,15 @@ test("checkout success URL alone and a mismatched product never call the purchas
   ]);
 });
 
-test("unowned skins link to the shared Store instead of starting in-app checkout", async () => {
+test("unowned skins stay hidden and the store link does not start checkout", async () => {
   const store = makeBuyStore();
   const { documentRef, locationRef } = await launch("", store, "localhost");
-  const link = findBuyButton(documentRef, 0);
-  assert.equal(link.textContent, "Storeで購入");
-  assert.equal(link.href, "http://127.0.0.1:5173/index.html?source_app=actiontimer#/products/actiontimer.skin.1");
+  const catalog = documentRef.elements.get("skin-catalog");
+  const link = documentRef.elements.get("store-link-slot").children[0];
+  assert.equal(catalog.children.length, 0);
+  assert.equal(link.tagName, "A");
+  assert.equal(link.textContent, "ストアを開く");
+  assert.equal(link.href, "http://127.0.0.1:5173/index.html?source_app=actiontimer");
   assert.equal(link.href.includes("device"), false);
   assert.equal(store.calls.some((c) => c.name === "checkout"), false);
   assert.equal(locationRef.assigned, null);

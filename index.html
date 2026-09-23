@@ -42,11 +42,11 @@
         <p id="unexploded-empty" class="empty-note" hidden>燃え尽きた項目はありません。着手できなかった項目はここに残ります。</p>
       </section>
     </div>
-    <section class="store-section" aria-labelledby="store-heading">
-      <div class="store-heading-row"><h2 id="store-heading">着せ替えストア</h2><span class="store-note">試着は保存されません</span></div>
-      <p>既定の明るい和風配色は無料です。購入後、入金確認された配色だけ端末に保存できます。</p>
-      <ul id="skin-catalog" class="skin-catalog"></ul>
+    <section class="owned-section" aria-labelledby="owned-heading">
+      <h2 id="owned-heading" class="visually-hidden">購入済みの配色</h2>
+      <ul id="skin-catalog" class="skin-catalog" hidden></ul>
       <p id="skin-store-status" class="store-status" role="status" aria-live="polite"></p>
+      <p id="store-link-slot" class="store-link-row"></p>
       <form id="skin-restore-form" class="skin-restore-form" autocomplete="off">
         <label for="skin-restore-code">購入コードで復元</label>
         <input id="skin-restore-code" type="text" autocomplete="off">

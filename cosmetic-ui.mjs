@@ -1,40 +1,49 @@
-import { CATALOG, FREE_SKIN_ID, createCosmeticStore, createDefaultBillingClient, resolveDefaultStoreOrigin, storeProductUrl } from "./cosmetic-store.mjs";
+import { CATALOG, FREE_SKIN_ID, createCosmeticStore, createDefaultBillingClient, resolveDefaultStoreOrigin, storeEntryUrl } from "./cosmetic-store.mjs";
 
 export function initializeCosmeticUI({ documentRef = document, locationRef = location, historyRef = history, store = createCosmeticStore({ billingClient: createDefaultBillingClient(locationRef) }), storeOrigin = resolveDefaultStoreOrigin(locationRef) } = {}) {
   const status = documentRef.getElementById("skin-store-status");
   const list = documentRef.getElementById("skin-catalog");
+  const linkSlot = documentRef.getElementById("store-link-slot");
   function applySkin(id) {
     const product = CATALOG.find((item) => item.id === id);
     documentRef.documentElement.dataset.skin = id;
     if (product) documentRef.documentElement.style.setProperty("--skin-accent", product.color);
     else documentRef.documentElement.style.removeProperty("--skin-accent");
   }
+  function renderStoreLink() {
+    if (!linkSlot) return;
+    linkSlot.textContent = "";
+    const url = storeEntryUrl({ origin: storeOrigin, sourceApp: "actiontimer" });
+    const control = url ? documentRef.createElement("a") : documentRef.createElement("button");
+    control.className = "skin-store-link";
+    control.id = "store-link";
+    control.textContent = "ストアを開く";
+    if (url) control.href = url;
+    else { control.type = "button"; control.disabled = true; }
+    linkSlot.appendChild(control);
+  }
   function render() {
     const owned = new Set(store.getEntitlements());
     const selected = store.getSelectedSkin();
     list.textContent = "";
     for (const product of CATALOG) {
+      if (!owned.has(product.id)) continue;
       const card = documentRef.createElement("li"); card.className = "skin-card";
       const swatch = documentRef.createElement("span"); swatch.className = "skin-card__swatch"; swatch.style.backgroundColor = product.color; swatch.setAttribute("aria-hidden", "true");
       const title = documentRef.createElement("strong"); title.textContent = product.name;
-      const preview = documentRef.createElement("button"); preview.type = "button"; preview.textContent = selected === product.id ? "試着中" : "試着"; preview.addEventListener("click", () => { store.tryOn(product.id); applySkin(store.getSelectedSkin()); render(); status.textContent = `${product.name}を試着中です。再読み込みすると無料配色に戻ります。`; });
-      let primary;
-      if (owned.has(product.id)) {
-        primary = documentRef.createElement("button");
-        primary.type = "button";
-        primary.textContent = "このテーマを使う";
-        primary.disabled = selected === product.id;
-        primary.addEventListener("click", () => { store.selectSkin(product.id); applySkin(store.getSelectedSkin()); render(); status.textContent = `${product.name}を選択しました。`; });
+      const apply = documentRef.createElement("button"); apply.type = "button";
+      if (selected === product.id) {
+        apply.textContent = "無料配色に戻す";
+        apply.addEventListener("click", () => { store.selectSkin(FREE_SKIN_ID); applySkin(FREE_SKIN_ID); render(); status.textContent = "無料の明るい和風配色に戻しました。"; });
       } else {
-        primary = documentRef.createElement("a");
-        primary.className = "skin-store-link";
-        primary.textContent = "Storeで購入";
-        primary.href = storeProductUrl(product.id, { origin: storeOrigin, sourceApp: "actiontimer" });
+        apply.textContent = "このテーマを使う";
+        apply.addEventListener("click", () => { store.selectSkin(product.id); applySkin(product.id); render(); status.textContent = `${product.name}を選択しました。`; });
       }
-      const actions = documentRef.createElement("div"); actions.className = "skin-card__actions"; actions.append(preview, primary); card.append(swatch, title, actions); list.appendChild(card);
+      card.append(swatch, title, apply); list.appendChild(card);
     }
-    const free = documentRef.createElement("button"); free.type = "button"; free.className = "skin-free"; free.textContent = selected === FREE_SKIN_ID ? "無料の明るい和風配色（選択中）" : "無料の明るい和風配色"; free.addEventListener("click", () => { store.selectSkin(FREE_SKIN_ID); applySkin(FREE_SKIN_ID); render(); });
-    list.appendChild(free); applySkin(selected);
+    list.hidden = list.children.length === 0;
+    renderStoreLink();
+    applySkin(selected);
   }
   async function completeCheckoutReturn() {
     const returnUrl = new URL(locationRef.href); const result = store.handleCheckoutReturn(returnUrl); if (!result.success) return;

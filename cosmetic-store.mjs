@@ -38,11 +38,17 @@ export function resolveDefaultStoreOrigin(locationRef) {
   return isLocalHost(locationRef) ? "http://127.0.0.1:5173" : "";
 }
 
+export function storeEntryUrl({ origin = "", sourceApp = "actiontimer" } = {}) {
+  if (!origin) return "";
+  const query = `source_app=${encodeURIComponent(sourceApp)}`;
+  return `${String(origin).replace(/\/$/, "")}/index.html?${query}`;
+}
+
 export function storeProductUrl(offerId, { origin = "", sourceApp = "actiontimer" } = {}) {
   if (!PRODUCT_IDS.has(offerId)) return "";
   const query = `source_app=${encodeURIComponent(sourceApp)}`;
   const hash = `#/products/${encodeURIComponent(offerId)}`;
-  if (!origin) return `index.html?${query}${hash}`;
+  if (!origin) return "";
   return `${String(origin).replace(/\/$/, "")}/index.html?${query}${hash}`;
 }
 

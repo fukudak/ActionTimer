@@ -120,7 +120,10 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 @media screen and (min-width: 320px) { .add-form { grid-template-columns:minmax(0,1fr) auto; } }
 @media screen and (max-width: 320px) { body { padding-inline:12px; } }
 @media screen and (min-width: 600px) { body { padding-inline:24px; } }
-.store-section { margin: 34px 0 28px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.owned-section { margin: 28px 0 24px; }
+.visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.store-link-row { margin: 0 0 12px; }
+.skin-catalog[hidden] { display:none; }
 .store-heading-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
 .store-section h2 { margin-bottom:4px; }
 .store-section > p { margin:0 0 12px; color:var(--muted); font-size:.82rem; }
@@ -133,7 +136,7 @@ h2::before { content:""; width:4px; height:1.2em; border-radius:2px; background:
 .skin-card__actions { grid-column:2 / -1; display:flex; gap:7px; }
 .skin-card button, .skin-free, .skin-store-link { min-height:40px; padding:6px 10px; border:1px solid var(--skin-accent, var(--flame)); border-radius:8px; background:transparent; color:var(--skin-accent, var(--flame)); font:inherit; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
 .skin-card button:last-child, .skin-store-link { background:var(--skin-accent, var(--flame)); color:#fffaf0; }
-.skin-card button:disabled { opacity:.55; cursor:default; }
+.skin-card button:disabled, .skin-store-link:disabled { opacity:.55; cursor:default; }
 .skin-free { width:100%; margin-top:2px; border-color:var(--line); color:var(--ink); }
 .store-status { min-height:1.4em; margin-top:10px !important; color:var(--skin-accent, var(--flame)) !important; }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
